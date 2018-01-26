@@ -32,7 +32,7 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
     }
 
     def status = issue.getStatus().getName();
-    if ("Backlog".equals(status) && !("Epic".equals(issue.getIssueType().getName()))) {
+    if (("Backlog".equals(status) || "Blocked".equals(status)) && !("Epic".equals(issue.getIssueType().getName()))) {
         return 0;
     }
         
@@ -64,7 +64,7 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
             Issue childIssue = issueLink.getDestinationObject()
             
             def childStatus = childIssue.getStatus().getName();
-            if ("Backlog".equals(childStatus) && !("Epic".equals(childIssue.getIssueType().getName()))) {
+            if (("Backlog".equals(status) || "Blocked".equals(status)) && !("Epic".equals(childIssue.getIssueType().getName()))) {
                 return
             }
         
@@ -80,7 +80,7 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
             }
             
             // skipping unestimated issues
-            if (childOriginalEstimate == 0) {
+            if (childOriginalEstimate == null || childOriginalEstimate == 0) {
                 return
             }
 
@@ -95,8 +95,6 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
                 childEstimate = (double) customChildEstimate
             }
                        
-            //log.info(issue.getKey() + "original estimate: " + childOriginalEstimate)
-            //log.info(issue.getKey() + "remaining: " + childEstimate)
             if (childCompoundOriginalEstimate == null) {
                 childCompoundOriginalEstimate = 0;
             }
@@ -109,7 +107,7 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
     }
     
     def compoundProgress = 0;
-    if (childCompoundOriginalEstimate == null || childCompoundOriginalEstimate == null) {
+    if (childCompoundRemainingEstimate == null || childCompoundOriginalEstimate == null) {
         if (thisCompoundOriginalEstimate > 0) {
     	    compoundProgress = 1 - (thisCompoundRemainingEstimate / thisCompoundOriginalEstimate)
             if (compoundProgress < 0) {

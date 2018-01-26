@@ -89,7 +89,7 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
             }
             
             // skipping unestimated issues
-            if (childOriginalEstimate == 0) {
+            if (childOriginalEstimate == null || childOriginalEstimate == 0) {
                 return
             }
         
