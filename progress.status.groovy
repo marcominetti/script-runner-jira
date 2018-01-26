@@ -73,34 +73,34 @@ def percentDifference = (total > 0) ? (int)(difference / total * 100) : 0
 
 builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-height: 22px;") {
     if (thisCompoundOriginalEstimate > 0) {
-        div (class: "", style: "padding: 3px 7px; color: #89afd7; background-color: #fff; margin-right: 0px; font-size: 11px;") {
-            span ("Estimate ")
+        div (class: "", style: "padding: 3px 7px; color: #89afd7; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
+            span ("E ")
         }
-        div (class: "", style: "padding: 0px 8px; color: #ffffff; background-color: #89afd7; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Original Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #89afd7; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format((thisCompoundOriginalEstimate*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundOriginalEstimate))
         }
     }
     if (thisCompoundRemainingEstimate > 0) {
-        div (class: "", style: "padding: 3px 7px; color: #e2b36b; background-color: #fff; margin-right: 0px; font-size: 11px;") {
-            span ("Remaining ")
+        div (class: "", style: "padding: 3px 7px; color: #e2b36b; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
+            span ("R ")
         }
-        div (class: "", style: "padding: 0px 8px; color: #ffffff; background-color: #ec8e00; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Remaining Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #ec8e00; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format((thisCompoundRemainingEstimate*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundRemainingEstimate))
         }
     }
     if (thisCompoundTimeSpent > 0) {
-        div (class: "", style: "padding: 3px 7px; color: #75af59; background-color: #fff; margin-right: 0px; font-size: 11px;") {
-            span ("Spent ")
+        div (class: "", style: "padding: 3px 7px; color: #75af59; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
+            span ("L ")
         }
-        div (class: "", style: "padding: 0px 8px; color: #ffffff; background-color: #51a825; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Logged", style: "padding: 0px 8px; color: #ffffff; background-color: #51a825; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format((thisCompoundTimeSpent*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundTimeSpent))
         }
     }
     if (thisCompoundOriginalEstimate > 0 || thisCompoundRemainingEstimate > 0 || thisCompoundTimeSpent > 0) {
-        div (class: "", style: "padding: 3px 7px; color: #cccccc; font-size: 11px;") {
-            span ("Progress ")
+        div (class: "", style: "padding: 3px 7px; color: #cccccc; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
+            span ("P ")
         }
-        div (class: "", style: "padding: 0px 8px; color: #333333; background-color: #eeeeee; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Progress", style: "padding: 0px 8px; color: #333333; background-color: #eeeeee; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format("%.1f%%", (double)(thisCompoundProgress * 100)))
         }
         div (class: "", style: "") {
@@ -162,4 +162,4 @@ builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-heigh
     }
 }
 
-return writer
+return writer.toString()
