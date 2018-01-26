@@ -62,8 +62,9 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
         def originalEstimate = 0
         def remainingEstimate = 0
         def workableEstimate = 0
-        def backlogEstimate = 0
+        def blockedEstimate = 0
         def overrunEstimate = 0
+        def projectedEstimate = 0
         def timeSpent = 0
         def progressRemaining = 0
         def progressTimeSpent = 0
@@ -73,20 +74,22 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
         def customOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
         def customRemainingEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
         def customWorkableEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Workable Estimate");
-        def customBacklogEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Backlog Estimate");
+        def customBlockedEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Blocked Estimate");
         def customOverrunEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Overrun Estimate");
         def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
         def customProgressRemainingField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Remaining)");
         def customProgressTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Time Spent)");
         def customWarningField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Warnings");
+        def customChildrenField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Children");
 
         List<Map<String,String>> anomalies = new ArrayList<Map<String,String>>()
+        List<Map<String,String>> children = new ArrayList<Map<String,String>>()
 
         issues.each { issue ->
             def issueOriginalEstimate = 0
             def issueRemainingEstimate = 0
             def issueWorkableEstimate = 0
-            def issueBacklogEstimate = 0
+            def issueBlockedEstimate = 0
             def issueOverrunEstimate = 0
             def issueTimeSpent = 0
             def issueProgressRemaining = 0
@@ -103,9 +106,9 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
                 customValue = issue.getCustomFieldValue(customWorkableEstimateField);
                 issueWorkableEstimate = (customValue != null) ? (Double) customValue : 0;
             }
-            if(customBacklogEstimateField != null) {
-                customValue = issue.getCustomFieldValue(customBacklogEstimateField);
-                issueBacklogEstimate = (customValue != null) ? (Double) customValue : 0;
+            if(customBlockedEstimateField != null) {
+                customValue = issue.getCustomFieldValue(customBlockedEstimateField);
+                issueBlockedEstimate = (customValue != null) ? (Double) customValue : 0;
             }
             if(customOverrunEstimateField != null) {
                 customValue = issue.getCustomFieldValue(customOverrunEstimateField);
@@ -122,8 +125,9 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
             originalEstimate += issueOriginalEstimate;
             remainingEstimate += issueRemainingEstimate;
             workableEstimate += issueWorkableEstimate;
-            backlogEstimate += issueBacklogEstimate;
+            blockedEstimate += issueBlockedEstimate;
             overrunEstimate += issueOverrunEstimate;
+            projectedEstimate += (issueRemainingEstimate + issueTimeSpent)
             timeSpent += issueTimeSpent;
             progressTimeSpent += issueProgressTimeSpent * (issueTimeSpent + issueRemainingEstimate)
 
@@ -134,7 +138,16 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
                     def childAnomalies = jsonParser.parseText(customAnomalies.toString())
                     anomalies.addAll((List<Map<String,String>>) childAnomalies)
                 }
-            } 
+            }
+
+            if(customChildrenField != null) {
+                def customChildren = issue.getCustomFieldValue(customChildrenField);
+                if (customChildren != null) {
+                    def jsonParser = new JsonSlurper()
+                    def childChildren = jsonParser.parseText(customChildren.toString())
+                    children.addAll((List<String>) childChildren)
+                }
+            }
         }
 
         if (originalEstimate > 0) {
@@ -152,12 +165,14 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
         result.put("originalEstimate", (Double)originalEstimate);
         result.put("remainingEstimate", (Double)remainingEstimate);
         result.put("workableEstimate", (Double)workableEstimate);
-        result.put("backlogEstimate", (Double)backlogEstimate);
+        result.put("blockedEstimate", (Double)blockedEstimate);
         result.put("overrunEstimate", (Double)overrunEstimate);
+        result.put("projectedEstimate", (Double)projectedEstimate);
         result.put("timeSpent", (Double)timeSpent);
         result.put("progressRemaining", (Double)progressRemaining);
         result.put("progressTimeSpent", (Double)progressTimeSpent);
         result.put("warnings", anomalies);
+        result.put("children", children)
         return Response.ok(new JsonBuilder(result).toString()).build();
     } else {
         return Response.ok("{}").build();
