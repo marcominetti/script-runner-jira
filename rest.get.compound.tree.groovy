@@ -55,7 +55,7 @@ def buildTree (Issue issue, List circularityCache, IssueLinkManager issueLinkMan
         def customOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
         def customRemainingEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
         def customWorkableEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Workable Estimate");
-        def customBacklogEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Backlog Estimate");
+        def customBlockedEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Blocked Estimate");
         def customOverrunEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Overrun Estimate");
         def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
         def customProgressRemainingField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Remaining)");
@@ -73,9 +73,9 @@ def buildTree (Issue issue, List circularityCache, IssueLinkManager issueLinkMan
             customValue = issue.getCustomFieldValue(customWorkableEstimateField);
             tree.put("compoundWorkableEstimate", (customValue != null) ? (Double) customValue : 0);
         }
-        if(customBacklogEstimateField != null) {
-            customValue = issue.getCustomFieldValue(customBacklogEstimateField);
-            tree.put("compoundBacklogEstimate", (customValue != null) ? (Double) customValue : 0);
+        if(customBlockedEstimateField != null) {
+            customValue = issue.getCustomFieldValue(customBlockedEstimateField);
+            tree.put("compoundBlockedEstimate", (customValue != null) ? (Double) customValue : 0);
         }
         if(customOverrunEstimateField != null) {
             customValue = issue.getCustomFieldValue(customOverrunEstimateField);
