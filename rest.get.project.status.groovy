@@ -78,6 +78,9 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
         def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
         def customProgressRemainingField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Remaining)");
         def customProgressTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Time Spent)");
+        def customWarningField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Warnings");
+
+        List<Map<String,String>> anomalies = new ArrayList<Map<String,String>>()
 
         issues.each { issue ->
             def issueOriginalEstimate = 0
@@ -123,6 +126,15 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
             overrunEstimate += issueOverrunEstimate;
             timeSpent += issueTimeSpent;
             progressTimeSpent += issueProgressTimeSpent * (issueTimeSpent + issueRemainingEstimate)
+
+            if(customWarningField != null) {
+                def customAnomalies = issue.getCustomFieldValue(customWarningField);
+                if (customAnomalies != null) {
+                    def jsonParser = new JsonSlurper()
+                    def childAnomalies = jsonParser.parseText(customAnomalies.toString())
+                    anomalies.addAll((List<Map<String,String>>) childAnomalies)
+                }
+            } 
         }
 
         if (originalEstimate > 0) {
@@ -136,7 +148,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
             progressTimeSpent = 0;
         }
 
-        HashMap<String, Double> result = new HashMap<>();
+        HashMap<String, Object> result = new HashMap<>();
         result.put("originalEstimate", (Double)originalEstimate);
         result.put("remainingEstimate", (Double)remainingEstimate);
         result.put("workableEstimate", (Double)workableEstimate);
@@ -145,6 +157,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
         result.put("timeSpent", (Double)timeSpent);
         result.put("progressRemaining", (Double)progressRemaining);
         result.put("progressTimeSpent", (Double)progressTimeSpent);
+        result.put("warnings", anomalies);
         return Response.ok(new JsonBuilder(result).toString()).build();
     } else {
         return Response.ok("{}").build();
