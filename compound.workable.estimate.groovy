@@ -33,7 +33,7 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
         if (resolution == null) {
             // returning whether the issue is blocked
             def status = issue.getStatus().getName();
-    		if ("Backlog".equals(status) || "Blocked".equals(status)) {
+    		if ("Blocked".equals(status)) {
         		return 0;
     		}
             
