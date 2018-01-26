@@ -21,9 +21,9 @@ def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def circularityCache = []
 
 def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomFieldManager customFieldManager, Logger log) {
-    double thisEstimate = 0
-    double subsEstimate = 0
-    def compoundEstimate = 0
+    Double thisEstimate
+    Double subsEstimate
+    Double compoundEstimate
     
     // avoiding circularity
     if (circularityCache.contains(issue) == false) {
@@ -34,8 +34,7 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
             // getting remaining estimate
             def estimate = issue.getEstimate()
             if (estimate > 0) {
-                thisEstimate = (double) estimate
-                thisEstimate  = thisEstimate / (8 * 3600)
+                thisEstimate  = (double) estimate / (8 * 3600)
             }
         
             // traversing direct children
@@ -46,7 +45,7 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
                     || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
 
                     // reading this custom - scripted - field on child (hopefully triggering deep calculation)
-                    def childEstimate = 0
+                    Double childEstimate
                     Issue childIssue = issueLink.getDestinationObject()
                     def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
                     def customEstimate
@@ -58,14 +57,19 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
                     }
 
                     // adding each child estimate
-                    subsEstimate += childEstimate
+                    if (childEstimate != null) {
+                        if (subsEstimate == null) {
+                            subsEstimate = 0
+                        }
+                        subsEstimate += childEstimate
+                    }
                 }
             }
         }
     }
     
     // tree compound wins over issue estimate (if issue is not resolved)
-    compoundEstimate = ((subsEstimate > 0) ? subsEstimate : thisEstimate)
+    compoundEstimate = ((subsEstimate != null && subsEstimate > 0) ? subsEstimate : thisEstimate)
     
     // memoizing data in number field (for UI)
     def compoundField = customFieldManager.getCustomFieldObjectByName("Compound Remaining Estimate (for Scrum Board)");

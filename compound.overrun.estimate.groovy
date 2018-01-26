@@ -59,7 +59,7 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
                     || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
 
                     // reading this custom - scripted - field on child (hopefully triggering deep calculation)
-                    def childEstimate = 0
+                    Double childEstimate
                     Issue childIssue = issueLink.getDestinationObject()
                     def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Overrun Estimate");
                     def customEstimate
@@ -77,7 +77,7 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
         }
     }
     
-    // tree compound wins over issue estimate (if issue is not resolved)
+    // tree compound cumulates
     compoundEstimate = subsOverrun + thisOverrun
       
     return compoundEstimate;

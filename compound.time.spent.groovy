@@ -21,9 +21,9 @@ def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def circularityCache = []
 
 def calculateTimeSpent(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomFieldManager customFieldManager, Logger log) {
-    double thisTimeSpent = 0
-    double subsTimeSpent = 0
-    def compoundTimeSpent = 0
+    Double thisTimeSpent
+    Double subsTimeSpent
+    Double compoundTimeSpent
     
     // avoiding circularity
     if (circularityCache.contains(issue) == false) {
@@ -32,8 +32,7 @@ def calculateTimeSpent(Issue issue, List circularityCache, IssueLinkManager issu
         // getting time spent
         def timespent = issue.getTimeSpent()
         if (timespent > 0) {
-            thisTimeSpent = (double) timespent
-            thisTimeSpent  = thisTimeSpent / (8 * 3600)
+            thisTimeSpent  = (double) timespent / (8 * 3600)
         }
         
         // traversing direct children
@@ -56,14 +55,19 @@ def calculateTimeSpent(Issue issue, List circularityCache, IssueLinkManager issu
                 }
                 
                 // adding each child time spent
-                subsTimeSpent += childTimeSpent
+                if (childTimeSpent != null) {
+                    if (subsTimeSpent == null) {
+                        subsTimeSpent = 0
+                    }
+                    subsTimeSpent += childTimeSpent
+                }
             }
         }
    
     }
     
     // tree compound cumulates over issue time spent
-    compoundTimeSpent = subsTimeSpent + thisTimeSpent
+    compoundTimeSpent = ((subsTimeSpent != null && subsTimeSpent > 0) ? subsTimeSpent : thisTimeSpent)
     
     return compoundTimeSpent;
 }
