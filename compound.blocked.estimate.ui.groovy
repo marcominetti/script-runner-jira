@@ -14,7 +14,7 @@ def log = Logger.getLogger("COMPUTED")
 log.setLevel(Level.DEBUG)
 
 def customFieldManager = ComponentAccessor.getCustomFieldManager()
-def customFieldName = "Compound Backlog Estimate"
+def customFieldName = "Compound Blocked Estimate"
 
 def customField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 def customValue

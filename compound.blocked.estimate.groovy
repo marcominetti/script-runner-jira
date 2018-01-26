@@ -33,7 +33,7 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
         if (resolution == null) {
             // getting remaining estimate
             def status = issue.getStatus().getName();
-    		if ("Backlog".equals(status) || "Blocked".equals(status)) {
+    		if ("Blocked".equals(status)) {
                 def estimate = issue.getEstimate()
                 if (estimate > 0) {
                     thisEstimate  = (double) estimate / (8 * 3600)
@@ -50,7 +50,7 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
                     // reading this custom - scripted - field on child (hopefully triggering deep calculation)
                     Double childEstimate
                     Issue childIssue = issueLink.getDestinationObject()
-                    def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Backlog Estimate");
+                    def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Blocked Estimate");
                     def customEstimate
                     if(customEstimateField != null) {
                         customEstimate = childIssue.getCustomFieldValue(customEstimateField);
