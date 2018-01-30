@@ -33,7 +33,8 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
     }
     
     def status = issue.getStatus().getName();
-    if ("Blocked".equals(status)) {
+    // backlog kept for 2017 scheme compatibility
+    if ("Blocked".equals(status) || "Backlog".equals(status)) {
         return 0;
     }
     def customOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
@@ -73,7 +74,8 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
             Issue childIssue = issueLink.getDestinationObject()
             
             def childStatus = childIssue.getStatus().getName();
-            if ("Blocked".equals(status)) {
+            // backlog kept for 2017 scheme compatibility
+            if ("Blocked".equals(childStatus) || "Backlog".equals(childStatus)) {
                 return
             }
 
