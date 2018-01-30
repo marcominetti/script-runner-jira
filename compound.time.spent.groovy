@@ -1,4 +1,3 @@
-// Number|Number
 enableCache = {-> false}
 
 import com.atlassian.jira.ComponentManager
@@ -21,18 +20,19 @@ def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def circularityCache = []
 
 def calculateTimeSpent(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomFieldManager customFieldManager, Logger log) {
-    Double thisTimeSpent
-    Double subsTimeSpent
-    Double compoundTimeSpent
+    double thisTimeSpent = 0
+    double subsTimeSpent = 0
+    def compoundTimeSpent = 0
     
     // avoiding circularity
     if (circularityCache.contains(issue) == false) {
         circularityCache.add(issue)
         
-        // getting time spent
+        // getting original estimate
         def timespent = issue.getTimeSpent()
         if (timespent > 0) {
-            thisTimeSpent  = (double) timespent / (8 * 3600)
+            thisTimeSpent = (double) timespent
+            thisTimeSpent  = thisTimeSpent / (8 * 3600)
         }
         
         // traversing direct children
@@ -45,6 +45,7 @@ def calculateTimeSpent(Issue issue, List circularityCache, IssueLinkManager issu
                 // reading this custom - scripted - field on child (hopefully triggering deep calculation)
                 def childTimeSpent = 0
                 Issue childIssue = issueLink.getDestinationObject()
+                //def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent (computed)");
                 def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
                 def customTimeSpent
                 if(customTimeSpentField != null) {
@@ -54,21 +55,19 @@ def calculateTimeSpent(Issue issue, List circularityCache, IssueLinkManager issu
                 	 childTimeSpent = (double) customTimeSpent
                 }
                 
-                // adding each child time spent
-                if (childTimeSpent != null) {
-                    if (subsTimeSpent == null) {
-                        subsTimeSpent = 0
-                    }
-                    subsTimeSpent += childTimeSpent
-                }
+                // adding each child estimate
+                subsTimeSpent += childTimeSpent
             }
         }
    
     }
     
-    // tree compound cumulates over issue time spent
-    compoundTimeSpent = ((subsTimeSpent != null && subsTimeSpent > 0) ? subsTimeSpent : thisTimeSpent)
+    // tree compound wins over issue estimate
+    compoundTimeSpent = ((subsTimeSpent > 0) ? subsTimeSpent : thisTimeSpent)
     
+    // memoizing data in number field (for UI)
+    //def compoundField = customFieldManager.getCustomFieldObjectByName("Compound Time Spent");
+	//compoundField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(compoundField), compoundTimeSpent), new DefaultIssueChangeHolder());            
     return compoundTimeSpent;
 }
 

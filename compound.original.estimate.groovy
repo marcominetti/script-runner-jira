@@ -1,4 +1,3 @@
-// Number|Number
 enableCache = {-> false}
 
 import com.atlassian.jira.ComponentManager
@@ -21,9 +20,9 @@ def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def circularityCache = []
 
 def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomFieldManager customFieldManager, Logger log) {
-    Double thisEstimate
-    Double subsEstimate
-    Double compoundEstimate
+    double thisEstimate = 0
+    double subsEstimate = 0
+    def compoundEstimate = 0
     
     // avoiding circularity
     if (circularityCache.contains(issue) == false) {
@@ -32,7 +31,8 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
         // getting original estimate
         def estimate = issue.getOriginalEstimate()
         if (estimate > 0) {
-            thisEstimate  = (double) estimate / (8 * 3600)
+            thisEstimate = (double) estimate
+            thisEstimate  = thisEstimate / (8 * 3600)
         }
         
         // traversing direct children
@@ -43,7 +43,7 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
                 || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
                                 
                 // reading this custom - scripted - field on child (hopefully triggering deep calculation)
-                Double childEstimate
+                def childEstimate = 0
                 Issue childIssue = issueLink.getDestinationObject()
                 def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
                 def customEstimate
@@ -55,24 +55,18 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
                 }
                 
                 // adding each child estimate
-                if (childEstimate != null) {
-                    if (subsEstimate == null) {
-                        subsEstimate = 0
-                    }
-                    subsEstimate += childEstimate
-                }
+                subsEstimate += childEstimate
             }
         }
    
     }
     
     // tree compound wins over issue estimate
-    compoundEstimate = ((subsEstimate != null && subsEstimate > 0) ? subsEstimate : thisEstimate)
+    compoundEstimate = ((subsEstimate > 0) ? subsEstimate : thisEstimate)
     
     // memoizing data in number field (for UI)
     def compoundField = customFieldManager.getCustomFieldObjectByName("Compound Original Estimate (for Scrum Board)");
 	compoundField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(compoundField), compoundEstimate), new DefaultIssueChangeHolder());            
-    
     return compoundEstimate;
 }
 

@@ -1,4 +1,3 @@
-// Number|Number
 enableCache = {-> false}
 
 import com.atlassian.jira.ComponentManager
@@ -20,7 +19,6 @@ def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def customFieldManager = ComponentAccessor.getCustomFieldManager()
 
 def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFieldManager customFieldManager, Logger log) {
-    double thisCompoundOriginalEstimate = 0
     double thisCompoundTimeSpent = 0
     double thisCompoundRemainingEstimate = 0
     double thisProgress = 0
@@ -33,16 +31,8 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
     }
     
     def status = issue.getStatus().getName();
-    if ("Blocked".equals(status)) {
+    if ("Backlog".equals(status)) {
         return 0;
-    }
-    def customOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
-    def customOriginalEstimate
-    if(customOriginalEstimateField != null) {
-        customOriginalEstimate = issue.getCustomFieldValue(customOriginalEstimateField);
-    } 
-    if (customOriginalEstimate != null) {
-        thisCompoundOriginalEstimate = (double) customOriginalEstimate
     }
     
     def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
@@ -73,23 +63,7 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
             Issue childIssue = issueLink.getDestinationObject()
             
             def childStatus = childIssue.getStatus().getName();
-            if ("Blocked".equals(status)) {
-                return
-            }
-
-            // reading time spent custom - scripted - field on child
-            def childOriginalEstimate = 0
-            def customChildOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
-            def customChildOriginalEstimate
-            if(customChildOriginalEstimateField != null) {
-                customChildOriginalEstimate = childIssue.getCustomFieldValue(customChildOriginalEstimateField);
-            } 
-            if (customChildOriginalEstimate != null) {
-                childOriginalEstimate = (double) customChildOriginalEstimate
-            }
-            
-            // skipping unestimated issues
-            if (childOriginalEstimate == null || childOriginalEstimate == 0) {
+            if ("Backlog".equals(childStatus)) {
                 return
             }
         
@@ -142,7 +116,7 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
     if (compoundProgress == null) {
         //log.info("time spent: " + thisCompoundTimeSpent)
         //log.info("estimate: " + thisCompoundRemainingEstimate)
-        if (thisCompoundOriginalEstimate > 0 && (thisCompoundTimeSpent + thisCompoundRemainingEstimate) > 0) {
+        if ((thisCompoundTimeSpent + thisCompoundRemainingEstimate) > 0) {
         	return thisCompoundTimeSpent / (thisCompoundTimeSpent + thisCompoundRemainingEstimate)
         } else {
             return null
