@@ -21,9 +21,9 @@ def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def circularityCache = []
 
 def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomFieldManager customFieldManager, Logger log) {
-    Double thisEstimate
-    Double subsEstimate
-    Double compoundEstimate
+    Double thisEstimate = 0
+    Double subsEstimate = 0
+    Double compoundEstimate = 0
     
     // avoiding circularity
     if (circularityCache.contains(issue) == false) {
@@ -61,9 +61,6 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
 
                     // adding each child estimate
                     if (childEstimate != null) {
-                        if (subsEstimate == null) {
-                            subsEstimate = 0
-                        }
                         subsEstimate += childEstimate
                     }
                 }
@@ -72,7 +69,7 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
     }
     
     // tree compound wins over issue estimate (if issue is not resolved)
-    compoundEstimate = ((subsEstimate != null && subsEstimate > 0) ? subsEstimate : thisEstimate)
+    compoundEstimate = (subsEstimate > 0) ? subsEstimate : thisEstimate
 
     return compoundEstimate;
 }
