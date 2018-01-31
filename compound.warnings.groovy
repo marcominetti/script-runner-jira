@@ -113,11 +113,11 @@ def calculateAnomalies(Issue issue, List circularityCache, IssueLinkManager issu
             if (thisOriginalEstimate != null && thisOriginalEstimate > 0) {
                 createAnomaly(anomalies, issue, "WARN", "issue padre ma con original estimate: rimuovere l'original estimate dalla issue " + issue.getKey() + " assicurandosi di averla distribuita tra i figli")
             }
-            if (thisTimeSpent != null && thisTimeSpent > 0) {
-                createAnomaly(anomalies, issue, "WARN", "issue padre ma con worklog: rimuovere il worklog dalla issue " + issue.getKey() + " ed inserilo in uno dei figli")
-            }
             if (thisRemainingEstimate != null && thisRemainingEstimate > 0) {
                 createAnomaly(anomalies, issue, "WARN", "issue padre ma con remaining estimate: rimuovere la remaining estimate dalla issue " + issue.getKey() + " assicurandosi di averla distribuita tra i figli")
+            }
+            if (thisTimeSpent != null && thisTimeSpent > 0) {
+                createAnomaly(anomalies, issue, "WARN", "issue padre ma con worklog: rimuovere il worklog dalla issue " + issue.getKey() + " ed inserilo in uno dei figli")
             }
         }
     }
