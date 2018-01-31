@@ -75,6 +75,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
         def customWorkableEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Workable Estimate");
         def customBlockedEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Blocked Estimate");
         def customOverrunEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Overrun Estimate");
+        def customProjectedEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Projected Estimate");
         def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
         def customProgressField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress");
         def customWarningField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Warnings");
@@ -89,6 +90,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
             def issueWorkableEstimate = 0
             def issueBlockedEstimate = 0
             def issueOverrunEstimate = 0
+            def issueProjectedEstimate = 0
             def issueTimeSpent = 0
             def issueProgress = 0
             if(customOriginalEstimateField != null) {
@@ -111,6 +113,10 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
                 customValue = issue.getCustomFieldValue(customOverrunEstimateField);
                 issueOverrunEstimate = (customValue != null) ? (Double) customValue : 0;
             }
+            if(customProjectedEstimateField != null) {
+                customValue = issue.getCustomFieldValue(customProjectedEstimateField);
+                issueProjectedEstimate = (customValue != null) ? (Double) customValue : 0;
+            }
             if(customTimeSpentField != null) {
                 customValue = issue.getCustomFieldValue(customTimeSpentField);
                 issueTimeSpent = (customValue != null) ? (Double) customValue : 0;
@@ -124,9 +130,9 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
             workableEstimate += issueWorkableEstimate;
             blockedEstimate += issueBlockedEstimate;
             overrunEstimate += issueOverrunEstimate;
-            projectedEstimate += (issueRemainingEstimate + issueTimeSpent)
+            projectedEstimate += issueProjectedEstimate
             timeSpent += issueTimeSpent;
-            progress += issueProgress * (issueTimeSpent + issueRemainingEstimate)
+            progress += issueProgress * projectedEstimate
 
             if(customWarningField != null) {
                 def customAnomalies = issue.getCustomFieldValue(customWarningField);
@@ -147,8 +153,8 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
             }
         }
 
-        if ((timeSpent + remainingEstimate) > 0) {
-            progress /= (timeSpent + remainingEstimate);
+        if (projectedEstimate > 0) {
+            progress /= projectedEstimate;
         } else {
             progress = 0;
         }

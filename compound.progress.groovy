@@ -22,9 +22,9 @@ def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFieldManager customFieldManager, Logger log) {
     double thisCompoundOriginalEstimate = 0
     double thisCompoundTimeSpent = 0
-    double thisCompoundRemainingEstimate = 0
+    double thisCompoundProjectedEstimate = 0
     double thisProgress = 0
-    double compoundTimeSpentAndEstimate = 0
+    double compoundProjectedEstimate = 0
     Double compoundProgress = null
         
     def resolution = issue.getResolution();
@@ -50,13 +50,13 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
         thisCompoundTimeSpent = (double) customTimeSpent
     }
         
-    def customRemainingEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
-    def customRemainingEstimate
-    if(customRemainingEstimateField != null) {
-        customRemainingEstimate = issue.getCustomFieldValue(customRemainingEstimateField);
+    def customProjectedEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Projected Estimate");
+    def customProjectedEstimate
+    if(customProjectedEstimateField != null) {
+        customProjectedEstimate = issue.getCustomFieldValue(customProjectedEstimateField);
     } 
-    if (customRemainingEstimate != null) {
-        thisCompoundRemainingEstimate = (double) customRemainingEstimate
+    if (customProjectedEstimate != null) {
+        thisCompoundProjectedEstimate = (double) customProjectedEstimate
     }
     
     // traversing direct children
@@ -83,21 +83,10 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
             if (childOriginalEstimate == null || childOriginalEstimate == 0) {
                 return
             }
-        
-            // reading time spent custom - scripted - field on child
-            def childTimeSpent = 0
-            def customChildTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
-            def customChildTimeSpent
-            if(customChildTimeSpentField != null) {
-                customChildTimeSpent = childIssue.getCustomFieldValue(customChildTimeSpentField);
-            } 
-            if (customChildTimeSpent != null) {
-                childTimeSpent = (double) customChildTimeSpent
-            }
             
             // reading remaining estimate custom - scripted - field on child
             def childEstimate = 0
-            def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
+            def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Projected Estimate");
             def customEstimate
             if(customEstimateField != null) {
                 customEstimate = childIssue.getCustomFieldValue(customEstimateField);
@@ -122,27 +111,20 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
                 compoundProgress = 0
             }
             
-            //log.info(issue.getKey() + "progress: " + childProgress)
-            //log.info(issue.getKey() + "time spent: " + childTimeSpent)
-            //log.info(issue.getKey() + "remaining: " + childEstimate)
-            compoundProgress += childProgress * (childTimeSpent + childEstimate)
-            compoundTimeSpentAndEstimate += (childTimeSpent + childEstimate)
+            compoundProgress += childProgress * childEstimate
+            compoundProjectedEstimate += childEstimate
         }
     }
     
     if (compoundProgress == null) {
-        //log.info("time spent: " + thisCompoundTimeSpent)
-        //log.info("estimate: " + thisCompoundRemainingEstimate)
-        if (thisCompoundOriginalEstimate > 0 && (thisCompoundTimeSpent + thisCompoundRemainingEstimate) > 0) {
-        	return thisCompoundTimeSpent / (thisCompoundTimeSpent + thisCompoundRemainingEstimate)
+        if (thisCompoundOriginalEstimate > 0 && thisCompoundProjectedEstimate > 0) {
+        	return thisCompoundTimeSpent / thisCompoundProjectedEstimate
         } else {
             return null
         }
     } else {
-        //log.info("progress: " + compoundProgress)
-        //log.info("estimate: " + compoundTimeSpentAndEstimate)
-        if (compoundTimeSpentAndEstimate > 0) {
-        	return compoundProgress /= compoundTimeSpentAndEstimate
+        if (compoundProjectedEstimate > 0) {
+        	return compoundProgress /= compoundProjectedEstimate
         } else {
             return null;
         }
