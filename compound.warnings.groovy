@@ -106,6 +106,9 @@ def calculateAnomalies(Issue issue, List circularityCache, IssueLinkManager issu
             if (thisRemainingEstimate != null && thisRemainingEstimate > 0 && resolution != null) {
                 createAnomaly(anomalies, issue, "WARN", "issue risolta ma con remaining estimate: azzerare il remaining sulla issue " + issue.getKey())
             }
+            if ((thisRemainingEstimate == null || thisRemainingEstimate == 0) && resolution == null) {
+                createAnomaly(anomalies, issue, "WARN", "issue non risolta ma senza remaining estimate: chiudere la issue o adeguare il remaining sulla issue " + issue.getKey())
+            }
         } else {
             if (thisOriginalEstimate != null && thisOriginalEstimate > 0) {
                 createAnomaly(anomalies, issue, "WARN", "issue padre ma con original estimate: rimuovere l'original estimate dalla issue " + issue.getKey() + " assicurandosi di averla distribuita tra i figli")
