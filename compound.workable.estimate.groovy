@@ -29,43 +29,40 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
     if (circularityCache.contains(issue) == false) {
         circularityCache.add(issue)
         
-        def resolution = issue.getResolution();
-        if (resolution == null) {
-            // returning whether the issue is blocked
-            def status = issue.getStatus().getName();
-    		if ("Blocked".equals(status)) {
-        		return 0;
-    		}
-            
-            // getting remaining estimate
-            def estimate = issue.getEstimate()
-            if (estimate > 0) {
-                thisEstimate  = (double) estimate / (8 * 3600)
-            }
+        // returning whether the issue is blocked
+        def status = issue.getStatus().getName();
+        if ("Blocked".equals(status)) {
+            return 0;
+        }
         
-            // traversing direct children
-            issueLinkManager.getOutwardLinks(issue.id).each {
-                issueLink ->
-                if (issueLink.issueLinkType.name == "Hierarchy"
-                    || issueLink.issueLinkType.name == "Epic-Story Link"
-                    || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
+        // getting remaining estimate
+        def estimate = issue.getEstimate()
+        if (estimate > 0) {
+            thisEstimate  = (double) estimate / (8 * 3600)
+        }
+    
+        // traversing direct children
+        issueLinkManager.getOutwardLinks(issue.id).each {
+            issueLink ->
+            if (issueLink.issueLinkType.name == "Hierarchy"
+                || issueLink.issueLinkType.name == "Epic-Story Link"
+                || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
 
-                    // reading this custom - scripted - field on child (hopefully triggering deep calculation)
-                    Double childEstimate
-                    Issue childIssue = issueLink.getDestinationObject()
-                    def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Workable Estimate");
-                    def customEstimate
-                    if(customEstimateField != null) {
-                        customEstimate = childIssue.getCustomFieldValue(customEstimateField);
-                    } 
-                    if (customEstimate != null) {
-                         childEstimate = (double) customEstimate
-                    }
+                // reading this custom - scripted - field on child (hopefully triggering deep calculation)
+                Double childEstimate
+                Issue childIssue = issueLink.getDestinationObject()
+                def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Workable Estimate");
+                def customEstimate
+                if(customEstimateField != null) {
+                    customEstimate = childIssue.getCustomFieldValue(customEstimateField);
+                } 
+                if (customEstimate != null) {
+                        childEstimate = (double) customEstimate
+                }
 
-                    // adding each child estimate
-                    if (childEstimate != null) {
-                        subsEstimate += childEstimate
-                    }
+                // adding each child estimate
+                if (childEstimate != null) {
+                    subsEstimate += childEstimate
                 }
             }
         }

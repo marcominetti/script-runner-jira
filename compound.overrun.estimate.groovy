@@ -30,49 +30,46 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
     // avoiding circularity
     if (circularityCache.contains(issue) == false) {
         circularityCache.add(issue)
+                
+        // getting original estimate
+        def estimate = issue.getOriginalEstimate()
+        if (estimate > 0) {
+            thisEstimate = (double) estimate
+            thisEstimate  = thisEstimate / (8 * 3600)
+        }
         
-        def resolution = issue.getResolution();
-        if (resolution == null) {           
-            // getting original estimate
-            def estimate = issue.getOriginalEstimate()
-            if (estimate > 0) {
-                thisEstimate = (double) estimate
-                thisEstimate  = thisEstimate / (8 * 3600)
-            }
-            
-            // getting time spent
-            def timespent = issue.getTimeSpent()
-            if (timespent > 0) {
-                thisTimeSpent = (double) timespent
-                thisTimeSpent  = thisTimeSpent / (8 * 3600)
-            }
-            
-            if (thisTimeSpent > thisEstimate) {
-                thisOverrun = thisTimeSpent - thisEstimate
-            }
+        // getting time spent
+        def timespent = issue.getTimeSpent()
+        if (timespent > 0) {
+            thisTimeSpent = (double) timespent
+            thisTimeSpent  = thisTimeSpent / (8 * 3600)
+        }
         
-            // traversing direct children
-            issueLinkManager.getOutwardLinks(issue.id).each {
-                issueLink ->
-                if (issueLink.issueLinkType.name == "Hierarchy"
-                    || issueLink.issueLinkType.name == "Epic-Story Link"
-                    || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
+        if (thisTimeSpent > thisEstimate) {
+            thisOverrun = thisTimeSpent - thisEstimate
+        }
+    
+        // traversing direct children
+        issueLinkManager.getOutwardLinks(issue.id).each {
+            issueLink ->
+            if (issueLink.issueLinkType.name == "Hierarchy"
+                || issueLink.issueLinkType.name == "Epic-Story Link"
+                || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
 
-                    // reading this custom - scripted - field on child (hopefully triggering deep calculation)
-                    Double childEstimate
-                    Issue childIssue = issueLink.getDestinationObject()
-                    def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Overrun Estimate");
-                    def customEstimate
-                    if(customEstimateField != null) {
-                        customEstimate = childIssue.getCustomFieldValue(customEstimateField);
-                    } 
-                    if (customEstimate != null) {
-                         childEstimate = (double) customEstimate
-                    }
-
-                    // adding each child estimate
-                    subsOverrun += childEstimate
+                // reading this custom - scripted - field on child (hopefully triggering deep calculation)
+                Double childEstimate
+                Issue childIssue = issueLink.getDestinationObject()
+                def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Overrun Estimate");
+                def customEstimate
+                if(customEstimateField != null) {
+                    customEstimate = childIssue.getCustomFieldValue(customEstimateField);
+                } 
+                if (customEstimate != null) {
+                        childEstimate = (double) customEstimate
                 }
+
+                // adding each child estimate
+                subsOverrun += childEstimate
             }
         }
     }

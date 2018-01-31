@@ -82,7 +82,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
         def customChildrenField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Children");
 
         List<Map<String,String>> anomalies = new ArrayList<Map<String,String>>()
-        List<Map<String,String>> children = new ArrayList<Map<String,String>>()
+        List<String> children = new ArrayList<String>()
 
         issues.each { issue ->
             def issueOriginalEstimate = 0
@@ -132,7 +132,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
             overrunEstimate += issueOverrunEstimate;
             projectedEstimate += issueProjectedEstimate
             timeSpent += issueTimeSpent;
-            progress += issueProgress * projectedEstimate
+            progress += issueProgress * issueProjectedEstimate
 
             if(customWarningField != null) {
                 def customAnomalies = issue.getCustomFieldValue(customWarningField);

@@ -31,60 +31,57 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
     if (circularityCache.contains(issue) == false) {
         circularityCache.add(issue)
         
-        def resolution = issue.getResolution();
-        if (resolution == null) {
-            // getting remaining estimate
-            def estimate = issue.getEstimate()
-            if (estimate > 0) {
-                thisEstimate  = (double) estimate / (8 * 3600)
-            }
-            
-            // getting time spent
-            def timespent = issue.getTimeSpent()
-            if (timespent > 0) {
-                thisTimeSpent  = (double) timespent / (8 * 3600)
-            }
-        
-            // traversing direct children
-            issueLinkManager.getOutwardLinks(issue.id).each {
-                issueLink ->
-                if (issueLink.issueLinkType.name == "Hierarchy"
-                    || issueLink.issueLinkType.name == "Epic-Story Link"
-                    || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
+        // getting remaining estimate
+        def estimate = issue.getEstimate()
+        if (estimate > 0) {
+            thisEstimate  = (double) estimate / (8 * 3600)
+        }
 
-                    Issue childIssue = issueLink.getDestinationObject()
+        // getting time spent
+        def timespent = issue.getTimeSpent()
+        if (timespent > 0) {
+            thisTimeSpent  = (double) timespent / (8 * 3600)
+        }
 
-                    // reading time spent
-                    Double childTimeSpent
-                    def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
-                    def customTimeSpent
-                    if(customTimeSpentField != null) {
-                        customTimeSpent = childIssue.getCustomFieldValue(customTimeSpentField);
-                    } 
-                    if (customTimeSpent != null) {
-                         childTimeSpent = (double) customTimeSpent
-                    }
+        // traversing direct children
+        issueLinkManager.getOutwardLinks(issue.id).each {
+            issueLink ->
+            if (issueLink.issueLinkType.name == "Hierarchy"
+                || issueLink.issueLinkType.name == "Epic-Story Link"
+                || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
 
-                    // adding each child estimate
-                    if (childTimeSpent != null) {
-                        subsTimeSpent += childTimeSpent
-                    }
+                Issue childIssue = issueLink.getDestinationObject()
 
-                    // reading remaining estimate
-                    Double childEstimate
-                    def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
-                    def customEstimate
-                    if(customEstimateField != null) {
-                        customEstimate = childIssue.getCustomFieldValue(customEstimateField);
-                    } 
-                    if (customEstimate != null) {
-                         childEstimate = (double) customEstimate
-                    }
+                // reading time spent
+                Double childTimeSpent
+                def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
+                def customTimeSpent
+                if(customTimeSpentField != null) {
+                    customTimeSpent = childIssue.getCustomFieldValue(customTimeSpentField);
+                } 
+                if (customTimeSpent != null) {
+                    childTimeSpent = (double) customTimeSpent
+                }
 
-                    // adding each child estimate
-                    if (childEstimate != null) {
-                        subsEstimate += childEstimate
-                    }
+                // adding each child estimate
+                if (childTimeSpent != null) {
+                    subsTimeSpent += childTimeSpent
+                }
+
+                // reading remaining estimate
+                Double childEstimate
+                def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
+                def customEstimate
+                if(customEstimateField != null) {
+                    customEstimate = childIssue.getCustomFieldValue(customEstimateField);
+                } 
+                if (customEstimate != null) {
+                    childEstimate = (double) customEstimate
+                }
+
+                // adding each child estimate
+                if (childEstimate != null) {
+                    subsEstimate += childEstimate
                 }
             }
         }
