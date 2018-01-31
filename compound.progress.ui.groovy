@@ -14,7 +14,7 @@ def log = Logger.getLogger("COMPUTED")
 log.setLevel(Level.DEBUG)
 
 def customFieldManager = ComponentAccessor.getCustomFieldManager()
-def customFieldName = "Compound Progress (Time Spent)"
+def customFieldName = "Compound Progress"
 
 def customField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 def customValue

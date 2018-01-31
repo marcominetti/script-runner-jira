@@ -32,11 +32,6 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
         return 1;
     }
     
-    def status = issue.getStatus().getName();
-    // backlog kept for 2017 scheme compatibility
-    if ("Blocked".equals(status) || "Backlog".equals(status)) {
-        return 0;
-    }
     def customOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
     def customOriginalEstimate
     if(customOriginalEstimateField != null) {
@@ -73,12 +68,6 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
 
             Issue childIssue = issueLink.getDestinationObject()
             
-            def childStatus = childIssue.getStatus().getName();
-            // backlog kept for 2017 scheme compatibility
-            if ("Blocked".equals(childStatus) || "Backlog".equals(childStatus)) {
-                return
-            }
-
             // reading time spent custom - scripted - field on child
             def childOriginalEstimate = 0
             def customChildOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
@@ -119,7 +108,7 @@ def calculateProgress(Issue issue, IssueLinkManager issueLinkManager, CustomFiel
             
             // reading this custom - scripted - field on child
             def childProgress = 0
-            def customProgressField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Time Spent)");
+            def customProgressField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress");
             def customProgress
             if(customProgressField != null) {
                 customProgress = childIssue.getCustomFieldValue(customProgressField);
