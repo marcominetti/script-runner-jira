@@ -29,7 +29,7 @@ import javax.ws.rs.core.Response
 
 @BaseScript CustomEndpointDelegate delegate
 
-getProjectStatus(httpMethod: "GET", groups: ["jira-users"]) { MultivaluedMap queryParams, String body ->
+getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"]) { MultivaluedMap queryParams, String body ->
     IssueLinkManager issueLinkManager = ComponentAccessor.getIssueLinkManager();
     IssueManager issueManager = ComponentAccessor.getIssueManager();
     ProjectManager projectManager = ComponentAccessor.getProjectManager();
