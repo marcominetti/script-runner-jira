@@ -16,6 +16,11 @@ import com.atlassian.jira.user.ApplicationUser
 import com.atlassian.jira.issue.search.SearchResults
 import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.fields.CustomField;
+import com.atlassian.sal.api.user.UserManager;
+import com.atlassian.sal.api.user.UserProfile;
+import com.atlassian.jira.security.roles.ProjectRole;
+import com.atlassian.jira.security.roles.ProjectRoleManager;
+import com.atlassian.jira.user.util.UserUtil;
 
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
@@ -24,7 +29,7 @@ import javax.ws.rs.core.Response
 
 @BaseScript CustomEndpointDelegate delegate
 
-getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { MultivaluedMap queryParams, String body ->
+getProjectStatus(httpMethod: "GET", groups: ["jira-users"]) { MultivaluedMap queryParams, String body ->
     IssueLinkManager issueLinkManager = ComponentAccessor.getIssueLinkManager();
     IssueManager issueManager = ComponentAccessor.getIssueManager();
     ProjectManager projectManager = ComponentAccessor.getProjectManager();
@@ -36,11 +41,24 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-administrators"]) { Multivalu
     	String projectKey = params.get(0).toString();    
     	project = projectManager.getProjectObjByKey(projectKey);
 	}
-    
+
+    UserManager userManager = ComponentAccessor.getOSGiComponentInstanceOfType(UserManager);
+    ApplicationUser user = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser()
+    boolean isAllowed = userManager.isSystemAdmin(user.getUsername()) || userManager.isAdmin(user.getUsername());
+
     if (project != null) {
+        ProjectRoleManager projectRoleManager = ComponentAccessor.getOSGiComponentInstanceOfType(ProjectRoleManager);
+        Collection projectRoles = projectRoleManager.getProjectRoles(user, project);
+        for (ProjectRole role : projectRoles) {
+            if ("Project Leaders".equals(role.getName()) || "Administrators".equals(role.getName())) {
+                isAllowed = true;
+            }
+        }
+    }
+
+    if (project != null && isAllowed == true) {
         JqlQueryParser jqlQueryParser = ComponentAccessor.getComponent(JqlQueryParser.class)
         SearchProvider searchProvider = ComponentAccessor.getComponent(SearchProvider.class)
-        ApplicationUser user = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser()
 
         Query query = jqlQueryParser.parseQuery("project = " + project.getKey() + " AND \"Epic Link\" = EMPTY AND issuetype in standardIssueTypes()")
         SearchResults results = searchProvider.search(query, user, PagerFilter.getUnlimitedFilter())
