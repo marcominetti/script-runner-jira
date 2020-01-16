@@ -67,8 +67,12 @@ def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issue
     
     // memoizing data in number field (for UI)
     def compoundField = customFieldManager.getCustomFieldObjectByName("Compound Remaining Estimate (for Scrum Board)");
-	compoundField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(compoundField), compoundEstimate), new DefaultIssueChangeHolder());            
-    
+    compoundField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(compoundField), compoundEstimate), new DefaultIssueChangeHolder());            
+    def issueManager = ComponentAccessor.getIssueManager();
+    def user = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();
+    def mutableIssue = issueManager.getIssueObject(issue.getKey());
+    issueManager.updateIssue(user, mutableIssue, EventDispatchOption.ISSUE_UPDATED, false);
+
     return compoundEstimate;
 }
 
