@@ -1,5 +1,5 @@
 // FreeText|Text
-enableCache = {-> false}
+enableCache = { ->false }
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
@@ -16,13 +16,18 @@ log.setLevel(Level.DEBUG)
 def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def customFieldName = "Compound Original Estimate"
 
-def customField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
+def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 def customValue
-if(customField != null) {
-    customValue = issue.getCustomFieldValue(customField);
-} 
+if (customField != null) {
+  customValue = issue.getCustomFieldValue(customField);
+}
+Double doubleValue = 0
 if (customValue != null) {
-    return ((double) customValue).round(2) + "d"
+  doubleValue = (double) customValue
+}
+
+if (doubleValue > 0) {
+  return (doubleValue).round(2) + "d"
 } else {
-    return null;
+  return "n.d.";
 }

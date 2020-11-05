@@ -1,6 +1,5 @@
 // FreeText|Text
-enableCache = { ->true
-}
+enableCache = { ->true }
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor

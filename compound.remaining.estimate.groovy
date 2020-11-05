@@ -1,5 +1,5 @@
 // Number|Number
-enableCache = {-> false}
+enableCache = { ->false }
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
@@ -21,59 +21,76 @@ def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def circularityCache = []
 
 def calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomFieldManager customFieldManager, Logger log) {
-    Double thisEstimate = 0
-    Double subsEstimate = 0
-    Double compoundEstimate = 0
-    
-    // avoiding circularity
-    if (circularityCache.contains(issue) == false) {
-        circularityCache.add(issue)
-        
-        // getting remaining estimate
-        def estimate = issue.getEstimate()
-        if (estimate > 0) {
-            thisEstimate  = (double) estimate / (8 * 3600)
-        }
-    
-        // traversing direct children
-        issueLinkManager.getOutwardLinks(issue.id).each {
-            issueLink ->
-            if (issueLink.issueLinkType.name == "Hierarchy"
-                || issueLink.issueLinkType.name == "Epic-Story Link"
-                || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
+  Double thisEstimate = 0
+  Double subsEstimate = 0
+  Double compoundEstimate = 0
 
-                // reading this custom - scripted - field on child (hopefully triggering deep calculation)
-                Double childEstimate
-                Issue childIssue = issueLink.getDestinationObject()
-                def customEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
-                def customEstimate
-                if(customEstimateField != null) {
-                    customEstimate = childIssue.getCustomFieldValue(customEstimateField);
-                } 
-                if (customEstimate != null) {
-                        childEstimate = (double) customEstimate
-                }
+  // avoiding circularity
+  if (circularityCache.contains(issue) == false) {
+    circularityCache.add(issue)
 
-                // adding each child estimate
-                if (childEstimate != null) {
-                    subsEstimate += childEstimate
-                }
-            }
-        }
+    // getting remaining estimate
+    def estimate = issue.getEstimate()
+    if (estimate > 0) {
+      thisEstimate = (double) estimate / (8 * 3600)
     }
-    
-    // tree compound wins over issue estimate (if issue is not resolved)
-    compoundEstimate = (subsEstimate > 0) ? subsEstimate : thisEstimate
-    
-    // memoizing data in number field (for UI)
-    def compoundField = customFieldManager.getCustomFieldObjectByName("Compound Remaining Estimate (for Scrum Board)");
-    compoundField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(compoundField), compoundEstimate), new DefaultIssueChangeHolder());            
-    def issueManager = ComponentAccessor.getIssueManager();
-    def user = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();
-    def mutableIssue = issueManager.getIssueObject(issue.getKey());
-    issueManager.updateIssue(user, mutableIssue, EventDispatchOption.ISSUE_UPDATED, false);
 
-    return compoundEstimate;
+    if (issue.getIssueType().getName() == "Milestone") {
+      // traversing direct children
+      issueLinkManager.getOutwardLinks(issue.id).each {
+        issueLink ->
+        if (issueLink.issueLinkType.name == "Hierarchy") {
+          Issue childIssue = issueLink.getDestinationObject()
+          if (childIssue.getIssueType().getName() == "Epic") {
+
+            def customEstimate = childIssue.getEstimate()
+            if (customEstimate != null) {
+              subsEstimate += (double) customEstimate / (8 * 3600)
+            }
+          }
+        }
+      }
+      return subsEstimate
+
+    } else {
+      // traversing direct children
+      issueLinkManager.getOutwardLinks(issue.id).each {
+        issueLink ->
+        if (issueLink.issueLinkType.name == "Hierarchy" || issueLink.issueLinkType.name == "Epic-Story Link" || issueLink.issueLinkType.isSubTaskLinkType() == true) {
+
+          // reading this custom - scripted - field on child (hopefully triggering deep calculation)
+          Double childEstimate
+          Issue childIssue = issueLink.getDestinationObject()
+          def customEstimateField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
+          def customEstimate
+          if (customEstimateField != null) {
+            customEstimate = childIssue.getCustomFieldValue(customEstimateField);
+          }
+          if (customEstimate != null) {
+            childEstimate = (double) customEstimate
+          }
+
+          // adding each child estimate
+          if (childEstimate != null) {
+            subsEstimate += childEstimate
+          }
+        }
+      }
+    }
+  }
+
+  // tree compound wins over issue estimate (if issue is not resolved)
+  compoundEstimate = (subsEstimate > 0) ? subsEstimate: thisEstimate
+
+  // memoizing data in number field (for UI)
+  def compoundField = customFieldManager.getCustomFieldObjectByName("Compound Remaining Estimate for Scrum)");
+  compoundField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(compoundField), compoundEstimate), new DefaultIssueChangeHolder());
+  def issueManager = ComponentAccessor.getIssueManager();
+  def user = ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();
+  def mutableIssue = issueManager.getIssueObject(issue.getKey());
+  issueManager.updateIssue(user, mutableIssue, EventDispatchOption.ISSUE_UPDATED, false);
+
+  return compoundEstimate;
 }
 
-return (Double)calculateEstimate(issue,circularityCache,issueLinkManager,customFieldManager,log)
+return (Double) calculateEstimate(issue, circularityCache, issueLinkManager, customFieldManager, log)
