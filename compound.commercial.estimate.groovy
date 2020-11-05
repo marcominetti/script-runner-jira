@@ -17,7 +17,6 @@ def log = Logger.getLogger("SCRIPTED")
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def circularityCache = []
 
-/*
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Commercial Estimate");
 Double getCustomFieldValue(Issue issue, CustomField customField) {
   def customValue
@@ -29,7 +28,6 @@ Double getCustomFieldValue(Issue issue, CustomField customField) {
   }
   return null
 }
-*/
 
 Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomField customField, Logger log, Integer level) {
   def pad = StringUtils.repeat(" ", level)
