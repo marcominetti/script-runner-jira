@@ -55,7 +55,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
       case "Bug":
       case "Change Request":
       case "Spike":
-      case "Subtask":
+      case "Sub-task":
         // getting this compound remaining estimate from child
         Double remainingEstimate = getCustomFieldValue(issue, customRemainingField)
         // getting this compound remaining estimate from child

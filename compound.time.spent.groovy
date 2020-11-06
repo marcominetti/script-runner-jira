@@ -107,7 +107,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
           Issue childIssue = issueLink.getDestinationObject()
           String childIssueTypeName = childIssue.getIssueType().getName()
           log.info(String.format("%sprocessing child of %s: %s", pad, issue.getKey(), childIssue.getKey()))
-          if (issueLink.issueLinkType.isSubTaskLinkType() == true && childIssue.getIssueType().getName() == "Subtask") {
+          if (issueLink.issueLinkType.isSubTaskLinkType() == true && childIssue.getIssueType().getName() == "Sub-task") {
                 // getting this estimate from child
                 //Double childEstimate = getCustomFieldValue(childIssue, customField)
                 Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, customField, log, level+1)
@@ -118,7 +118,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
         }
         result = thisEstimate + subsEstimate
         break;
-      case "Subtask":
+      case "Sub-task":
         result = thisEstimate
         break;
       default:
