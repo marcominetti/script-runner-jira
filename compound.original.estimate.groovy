@@ -2,24 +2,73 @@
 enableCache = { ->false }
 def customFieldName = "Compound Original Estimate"
 def customScrumFieldName = "Compound Original Estimate for Scrum"
+Long customPortfolioFieldId = 10200
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.issue.Issue
+import com.atlassian.jira.issue.link.IssueLink
 import com.atlassian.jira.issue.link.IssueLinkManager
+import com.atlassian.jira.issue.link.IssueLinkTypeManager
 import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.fields.CustomField;
 import com.atlassian.jira.issue.ModifiedValue;
 import com.atlassian.jira.issue.util.DefaultIssueChangeHolder;
 import org.apache.commons.lang3.StringUtils;
+import groovyx.net.http.RESTClient;
 
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 def log = Logger.getLogger("SCRIPTED")
 
+def loggedInUser = ComponentAccessor.jiraAuthenticationContext.loggedInUser
+def issueManager = ComponentAccessor.getIssueManager()
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
+def issueLinkTypeManager = ComponentAccessor.getComponent(IssueLinkTypeManager)
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 def circularityCache = []
+
+if (issue.getIssueType().getName() == "Epic") {
+  // get portfolio jira issue value
+  Issue milestonePortfolio
+  def customPortfolioField = ComponentAccessor.getCustomFieldManager().getCustomFieldObject(customPortfolioFieldId);
+  def milestonePortfolioKey = issue.getCustomFieldValue(customPortfolioField);
+  if (milestonePortfolioKey != null) {
+    milestonePortfolio = issueManager.getIssueByCurrentKey((String)milestonePortfolioKey)
+  }
+  if (milestonePortfolio != null) {
+  	log.info(String.format("portfolio milestone for %s: %s", issue.getKey(), milestonePortfolio.getKey()))
+  }
+
+  // get eventual issue milestone linked inward hierarchy
+  Issue milestoneJira
+  issueLinkManager.getInwardLinks(issue.id).each {
+    issueLink ->
+    Issue parentIssue = issueLink.getSourceObject()
+    if (issueLink.issueLinkType.name == "Hierarchy" && parentIssue.getIssueType().getName() == "Milestone") {
+      if (milestoneJira != null && milestonePortfolio != null && milestoneJira.getId() != milestonePortfolio.getId()) {
+        log.info(String.format("remove mismatching jira milestone for %s: %s should be %s", issue.getKey(), milestoneJira.getKey(), milestonePortfolio.getKey()))
+        issueLinkManager.removeIssueLink(issueLink, loggedInUser)
+      } else {
+        milestoneJira = parentIssue
+      }
+    }
+  }
+  if (milestonePortfolio != null) {
+  	log.info(String.format("jira milestone for %s: %s", issue.getKey(), milestoneJira.getKey()))
+  }
+    
+  // fixing
+  if (milestonePortfolio == null && milestoneJira != null) {
+    // set custom portfolio fields
+    // not possible
+  } else if (milestonePortfolio != null && milestoneJira == null) {
+    // create link from portfolio
+    log.info(String.format("link jira milestone for %s: %s", issue.getKey(), milestonePortfolio.getKey()))
+    def issueLinkType = issueLinkTypeManager.issueLinkTypes.findByName("Hierarchy")
+    issueLinkManager.createIssueLink(milestonePortfolio.id, issue.id, issueLinkType.id, 1L, loggedInUser)
+  }
+}
 
 Double getCustomFieldValue(Issue issue, CustomField customField) {
   def customValue
