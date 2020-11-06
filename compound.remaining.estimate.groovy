@@ -43,7 +43,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
 
     // getting original estimate
     Double thisEstimate = 0
-    def estimate = issue.getOriginalEstimate()
+    def estimate = issue.getEstimate()
     if (estimate > 0) {
       thisEstimate = (double) estimate / (8 * 3600)
     }

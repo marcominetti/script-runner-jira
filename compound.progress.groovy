@@ -61,7 +61,11 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
         // getting this compound remaining estimate from child
         Double timeSpent = getCustomFieldValue(issue, customSpentField)
         log.info(String.format("%sget %s for %s: %s", pad, customSpentField.getName(), issue.getKey(), timeSpent))
-        result = (double) (timeSpent / projectedEstimate)
+        if (projectedEstimate > 0) {
+        	result = (double) (timeSpent / projectedEstimate)
+        } else {
+            return 0
+        }
         break;
       case "Sub-task":
       default:

@@ -28,4 +28,6 @@ Double getCustomFieldValue(Issue issue, CustomField customField) {
 Double result = getCustomFieldValue(issue, customField)
 if (result > 0) {
   return String.format("%3.0f",result.round(2)*100) + "%"
+} else {
+  return "n.d."
 }
