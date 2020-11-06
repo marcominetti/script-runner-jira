@@ -28,6 +28,19 @@ def issueLinkTypeManager = ComponentAccessor.getComponent(IssueLinkTypeManager)
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 def circularityCache = []
 
+// cleaning unsupported hierarchy link
+/*issueLinkManager.getOutwardLinks(issue.id).each {
+    issueLink ->
+    Issue parentIssue = issueLink.getSourceObject()
+    Issue childIssue = issueLink.getDestinationObject()
+    if (issueLink.issueLinkType.name == "Hierarchy") {
+      if (!(parentIssue.getIssueType().getName() == "Milestone" && childIssue.getIssueType().getName() == "Epic")) {
+        log.info(String.format("remove forbidden jira hierarchy link from %s to %s", parentIssue.getKey(), childIssue.getKey()))
+        issueLinkManager.removeIssueLink(issueLink, loggedInUser)
+      }
+    }
+}*/
+
 if (issue.getIssueType().getName() == "Epic") {
   // get portfolio jira issue value
   Issue milestonePortfolio
