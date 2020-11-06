@@ -1,5 +1,5 @@
 // FreeText|Text
-enableCache = { ->true }
+enableCache = { ->false }
 def customFieldName = "Compound Original Estimate"
 
 import com.atlassian.jira.ComponentManager

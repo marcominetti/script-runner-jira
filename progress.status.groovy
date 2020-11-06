@@ -1,4 +1,5 @@
 // None|HTML
+enableCache = {-> false}
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor

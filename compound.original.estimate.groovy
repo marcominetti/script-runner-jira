@@ -1,5 +1,5 @@
 // Number|Number
-enableCache = { ->true }
+enableCache = { ->false }
 def customFieldName = "Compound Original Estimate"
 def customScrumFieldName = "Compound Original Estimate for Scrum"
 

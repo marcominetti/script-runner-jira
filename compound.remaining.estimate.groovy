@@ -1,5 +1,5 @@
 // Number|Number
-enableCache = { ->true }
+enableCache = { ->false }
 def customFieldName = "Compound Remaining Estimate"
 
 import com.atlassian.jira.ComponentManager

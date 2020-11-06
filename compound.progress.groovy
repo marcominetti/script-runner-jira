@@ -1,5 +1,5 @@
 // Number|Number
-enableCache = { ->true }
+enableCache = { ->false }
 def customFieldName = "Compound Progress"
 def customProjectedEstimateName = "Compound Projected Estimate"
 def customSpentFieldName = "Compound Time Spent"

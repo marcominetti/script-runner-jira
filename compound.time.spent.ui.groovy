@@ -1,5 +1,5 @@
 // FreeText|Text
-enableCache = { ->true }
+enableCache = { ->false }
 def customFieldName = "Compound Time Spent"
 
 import com.atlassian.jira.ComponentManager

@@ -1,5 +1,5 @@
 // FreeText|Text
-enableCache = { ->true }
+enableCache = { ->false }
 def customFieldName = "Compound Progress"
 
 import com.atlassian.jira.ComponentManager
