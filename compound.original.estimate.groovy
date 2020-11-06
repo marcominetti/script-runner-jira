@@ -180,7 +180,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
 
 Double result = calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
 // memoizing data in number field (for UI)
-log.info(String.format("%update %s for %s: %s", customScrumField.getName(), issue.getKey(), result))
+log.info(String.format("update %s for %s: %s", customScrumField.getName(), issue.getKey(), result))
 customScrumField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customScrumField), result), new DefaultIssueChangeHolder());
 
 return result
