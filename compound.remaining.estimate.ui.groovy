@@ -1,5 +1,6 @@
 // FreeText|Text
-enableCache = { ->false }
+enableCache = { ->true }
+def customFieldName = "Compound Remaining Estimate"
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
@@ -9,25 +10,24 @@ import com.atlassian.jira.issue.fields.CustomField;
 
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-
-def log = Logger.getLogger("COMPUTED")
-log.setLevel(Level.DEBUG)
-
-def customFieldManager = ComponentAccessor.getCustomFieldManager()
-def customFieldName = "Compound Remaining Estimate"
+def log = Logger.getLogger("SCRIPTED")
 
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
-def customValue
-if (customField != null) {
-  customValue = issue.getCustomFieldValue(customField);
-}
-Double doubleValue = 0
-if (customValue != null) {
-  doubleValue = (double) customValue
+
+Double getCustomFieldValue(Issue issue, CustomField customField) {
+  def customValue
+  if (customField != null) {
+    customValue = issue.getCustomFieldValue(customField);
+  }
+  if (customValue != null) {
+    return (double) customValue
+  }
+  return 0
 }
 
-if (doubleValue > 0) {
-  return (doubleValue).round(2) + "d"
+Double result = getCustomFieldValue(issue, customField)
+if (result > 0) {
+  return result.round(2) + "d"
 } else {
   return "n.d.";
 }

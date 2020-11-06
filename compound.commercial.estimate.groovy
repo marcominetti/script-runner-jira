@@ -47,7 +47,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
     if (estimate > 0) {
       thisEstimate = (double) estimate / (8 * 3600)
     }
-    log.info(String.format("%sthis compound commercial estimate for %s: %s", pad, issue.getKey(), thisEstimate))
+    log.info(String.format("%sthis %s for %s: %s", pad, customField.getName(), issue.getKey(), thisEstimate))
 
     // checking issue type
     String issueTypeName = issue.getIssueType().getName()
@@ -66,7 +66,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
                 // getting this estimate from child
                 //Double childEstimate = getCustomFieldValue(childIssue, customField)
                 Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, customField, log, level+1)
-                log.info(String.format("%schild compound commercial estimate for %s: %s", pad, childIssue.getKey(), childEstimate))
+                log.info(String.format("%schild %s for %s: %s", pad, customField.getName(), childIssue.getKey(), childEstimate))
                 // adding each child estimate
                 subsEstimate += childEstimate
               }

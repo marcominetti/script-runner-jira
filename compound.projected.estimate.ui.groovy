@@ -1,5 +1,6 @@
 // FreeText|Text
-enableCache = {-> false}
+enableCache = { ->true }
+def customFieldName = "Compound Projected Estimate"
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
@@ -9,20 +10,24 @@ import com.atlassian.jira.issue.fields.CustomField;
 
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
+def log = Logger.getLogger("SCRIPTED")
 
-def log = Logger.getLogger("COMPUTED")
-log.setLevel(Level.DEBUG)
+def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 
-def customFieldManager = ComponentAccessor.getCustomFieldManager()
-def customFieldName = "Compound Projected Estimate"
-
-def customField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
-def customValue
-if(customField != null) {
+Double getCustomFieldValue(Issue issue, CustomField customField) {
+  def customValue
+  if (customField != null) {
     customValue = issue.getCustomFieldValue(customField);
-} 
-if (customValue != null) {
-    return ((double) customValue).round(2) + "d"
+  }
+  if (customValue != null) {
+    return (double) customValue
+  }
+  return 0
+}
+
+Double result = getCustomFieldValue(issue, customField)
+if (result > 0) {
+  return result.round(2) + "d"
 } else {
-    return null;
+  return "n.d.";
 }

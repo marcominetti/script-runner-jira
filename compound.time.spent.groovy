@@ -1,5 +1,6 @@
 // Number|Number
-enableCache = {-> false}
+enableCache = { ->true }
+def customFieldName = "Compound Time Spent"
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
@@ -9,64 +10,124 @@ import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.fields.CustomField;
 import com.atlassian.jira.issue.ModifiedValue;
 import com.atlassian.jira.issue.util.DefaultIssueChangeHolder;
+import org.apache.commons.lang3.StringUtils;
 
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-
-def log = Logger.getLogger("COMPUTED")
-log.setLevel(Level.DEBUG)
+def log = Logger.getLogger("SCRIPTED")
 
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
-def customFieldManager = ComponentAccessor.getCustomFieldManager()
+def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 def circularityCache = []
 
-def calculateTimeSpent(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomFieldManager customFieldManager, Logger log) {
-    Double thisTimeSpent = 0
-    Double subsTimeSpent = 0
-    Double compoundTimeSpent = 0
-    
-    // avoiding circularity
-    if (circularityCache.contains(issue) == false) {
-        circularityCache.add(issue)
-        
-        // getting time spent
-        def timespent = issue.getTimeSpent()
-        if (timespent > 0) {
-            thisTimeSpent  = (double) timespent / (8 * 3600)
-        }
-        
-        // traversing direct children
-        issueLinkManager.getOutwardLinks(issue.id).each {
-            issueLink ->
-            if (issueLink.issueLinkType.name == "Hierarchy"
-                || issueLink.issueLinkType.name == "Epic-Story Link"
-                || issueLink.issueLinkType.isSubTaskLinkType() == true) { 
-                                
-                // reading this custom - scripted - field on child (hopefully triggering deep calculation)
-                def childTimeSpent = 0
-                Issue childIssue = issueLink.getDestinationObject()
-                def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
-                def customTimeSpent
-                if(customTimeSpentField != null) {
-                	customTimeSpent = childIssue.getCustomFieldValue(customTimeSpentField);
-                } 
-                if (customTimeSpent != null) {
-                	 childTimeSpent = (double) customTimeSpent
-                }
-                
-                // adding each child time spent
-                if (childTimeSpent != null) {
-                    subsTimeSpent += childTimeSpent
-                }
-            }
-        }
-   
-    }
-    
-    // tree compound cumulates over issue time spent
-    compoundTimeSpent = (subsTimeSpent > 0) ? subsTimeSpent : thisTimeSpent
-    
-    return compoundTimeSpent;
+Double getCustomFieldValue(Issue issue, CustomField customField) {
+  def customValue
+  if (customField != null) {
+    customValue = issue.getCustomFieldValue(customField);
+  }
+  if (customValue != null) {
+    return (double) customValue
+  }
+  return 0
 }
 
-return (Double)calculateTimeSpent(issue,circularityCache,issueLinkManager,customFieldManager,log)
+Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomField customField, Logger log, Integer level) {
+  def pad = StringUtils.repeat(" ", level*2)
+  log.info(String.format("%sbegin calculate %s for %s", pad, customField.getName(), issue.getKey()))
+  
+  Double result
+  
+  // avoiding circularity
+  if (circularityCache.contains(issue) == false) {
+    circularityCache.add(issue)
+
+    // getting original estimate
+    Double thisEstimate = 0
+    def estimate = issue.getOriginalEstimate()
+    if (estimate > 0) {
+      thisEstimate = (double) estimate / (8 * 3600)
+    }
+    log.info(String.format("%sthis %s for %s: %s", pad, customField.getName(), issue.getKey(), thisEstimate))
+
+    // checking issue type
+    String issueTypeName = issue.getIssueType().getName()
+    switch (issueTypeName) {
+      case "Milestone":
+        // traversing direct children
+        Double subsEstimate = 0
+        issueLinkManager.getOutwardLinks(issue.id).each {
+          issueLink ->
+          Issue childIssue = issueLink.getDestinationObject()
+          String childIssueTypeName = childIssue.getIssueType().getName()
+          log.info(String.format("%sprocessing child of %s: %s", pad, issue.getKey(), childIssue.getKey()))
+          if (issueLink.issueLinkType.name == "Hierarchy" && childIssue.getIssueType().getName() == "Epic") {
+            // getting this estimate from child
+            //Double childEstimate = getCustomFieldValue(childIssue, customField)
+            Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, customField, log, level+1)
+            log.info(String.format("%schild %s for %s: %s", pad, customField.getName(), childIssue.getKey(), childEstimate))
+            // adding each child estimate
+            subsEstimate += childEstimate
+          }
+        }
+        result = subsEstimate
+        break;
+      case "Epic":
+        // traversing direct children
+        Double subsEstimate = 0
+        issueLinkManager.getOutwardLinks(issue.id).each {
+          issueLink ->
+          Issue childIssue = issueLink.getDestinationObject()
+          String childIssueTypeName = childIssue.getIssueType().getName()
+          log.info(String.format("%sprocessing child of %s: %s", pad, issue.getKey(), childIssue.getKey()))
+          if (issueLink.issueLinkType.name == "Epic-Story Link" && (
+            childIssue.getIssueType().getName() == "Story"
+              || childIssue.getIssueType().getName() == "Task"
+              || childIssue.getIssueType().getName() == "Bug"
+              || childIssue.getIssueType().getName() == "Change Request"
+              || childIssue.getIssueType().getName() == "Spike")) {
+                // getting this estimate from child
+                //Double childEstimate = getCustomFieldValue(childIssue, customField)
+                Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, customField, log, level+1)
+                log.info(String.format("%schild %s for %s: %s", pad, customField.getName(), childIssue.getKey(), childEstimate))
+                // adding each child estimate
+                subsEstimate += childEstimate
+          }
+        }
+        result = subsEstimate
+        break;
+      case "Story":
+      case "Task":
+      case "Bug":
+      case "Change Request":
+      case "Spike":
+        // traversing direct children
+        Double subsEstimate = 0
+        issueLinkManager.getOutwardLinks(issue.id).each {
+          issueLink ->
+          Issue childIssue = issueLink.getDestinationObject()
+          String childIssueTypeName = childIssue.getIssueType().getName()
+          log.info(String.format("%sprocessing child of %s: %s", pad, issue.getKey(), childIssue.getKey()))
+          if (issueLink.issueLinkType.isSubTaskLinkType() == true && childIssue.getIssueType().getName() == "Subtask") {
+                // getting this estimate from child
+                //Double childEstimate = getCustomFieldValue(childIssue, customField)
+                Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, customField, log, level+1)
+                log.info(String.format("%schild %s for %s: %s", pad, customField.getName(), childIssue.getKey(), childEstimate))
+                // adding each child estimate
+                subsEstimate += childEstimate
+          }
+        }
+        result = thisEstimate + subsEstimate
+        break;
+      case "Subtask":
+        result = thisEstimate
+        break;
+      default:
+        result = 0
+        break;
+    }
+  }
+  log.info(String.format("%send calculate %s for %s: %s", pad, customField.getName(), issue.getKey(), result))
+  return result
+}
+
+return calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
