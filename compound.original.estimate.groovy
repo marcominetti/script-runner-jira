@@ -26,6 +26,7 @@ def issueManager = ComponentAccessor.getIssueManager()
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def issueLinkTypeManager = ComponentAccessor.getComponent(IssueLinkTypeManager)
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
+def customScrumField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customScrumFieldName);
 def circularityCache = []
 
 // cleaning unsupported hierarchy link
@@ -177,9 +178,9 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
   return result
 }
 
+Double result = calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
 // memoizing data in number field (for UI)
-//log.info(String.format("%update %s for %s: %s", customScrumFieldName.getName(), issue.getKey(), result))
-//def compoundField = customFieldManager.getCustomFieldObjectByName(customScrumFieldName);
-//compoundField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(compoundField), result), new DefaultIssueChangeHolder());
+log.info(String.format("%update %s for %s: %s", customScrumField.getName(), issue.getKey(), result))
+customScrumField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customScrumField), result), new DefaultIssueChangeHolder());
 
-return calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
+return result
