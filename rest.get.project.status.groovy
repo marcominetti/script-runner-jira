@@ -91,7 +91,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"
         def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
         def customProgressField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress");
         //def customWarningField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Warnings");
-        //def customChildrenField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Children");
+        def customChildrenField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Children");
 
         List<Map<String,String>> anomalies = new ArrayList<Map<String,String>>()
         List<String> children = new ArrayList<String>()
@@ -138,7 +138,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"
                     def childAnomalies = jsonParser.parseText(customAnomalies.toString())
                     anomalies.addAll((List<Map<String,String>>) childAnomalies)
                 }
-            }
+            }*/
 
             if(customChildrenField != null) {
                 def customChildren = issue.getCustomFieldValue(customChildrenField);
@@ -147,7 +147,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"
                     def childChildren = jsonParser.parseText(customChildren.toString())
                     children.addAll((List<String>) childChildren)
                 }
-            }*/
+            }
         }
 
         if (projectedEstimate > 0) {
@@ -163,7 +163,7 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"
         result.put("timeSpent", (Double)timeSpent);
         result.put("progress", (Double)progress);
         //result.put("warnings", anomalies);
-        //result.put("children", children)
+        result.put("children", children)
         return Response.ok(new JsonBuilder(result).toString()).build();
     } else {
         return Response.ok("{}").build();

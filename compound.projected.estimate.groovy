@@ -1,5 +1,5 @@
 // Number|Number
-enableCache = { ->true }
+enableCache = { ->false }
 def customFieldName = "Compound Projected Estimate"
 def customRemainingFieldName = "Compound Remaining Estimate"
 def customSpentFieldName = "Compound Time Spent"
@@ -58,9 +58,12 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
       case "Sub-task":
         // getting this compound remaining estimate from child
         Double remainingEstimate = getCustomFieldValue(issue, customRemainingField)
+        log.info(String.format("%sget %s for %s: %s", pad, customRemainingField.getName(), issue.getKey(), remainingEstimate))
         // getting this compound remaining estimate from child
         Double timeSpent = getCustomFieldValue(issue, customSpentField)
+        log.info(String.format("%sget %s for %s: %s", pad, customSpentField.getName(), issue.getKey(), timeSpent))
         result = remainingEstimate + timeSpent
+        break;
       default:
         result = 0
         break;

@@ -24,7 +24,8 @@ getIssueLinks(httpMethod: "GET", groups: ["jira-users"]) { MultivaluedMap queryP
     issueLinkManager.getOutwardLinks(issue.id).each {
         issueLink ->
         HashMap<String,String> issueLinkObject = new HashMap<String,String>();
-        issueLinkObject["name"] = issueLink.getIssueLinkType().getName();
+        issueLinkObject["issuetype"] = issueLink.getDestinationObject().getIssueType().getName();
+        issueLinkObject["linktype"] = issueLink.getIssueLinkType().getName();
         issueLinkObject["destination"] = issueLink.getDestinationObject().getKey();
         issueLinks.add(issueLinkObject);
     }

@@ -1,7 +1,7 @@
 // Number|Number
 enableCache = { ->true }
 def customFieldName = "Compound Progress"
-def customProjectedEstimate = "Compound Projected Estimate"
+def customProjectedEstimateName = "Compound Projected Estimate"
 def customSpentFieldName = "Compound Time Spent"
 
 import com.atlassian.jira.ComponentManager
@@ -20,7 +20,7 @@ def log = Logger.getLogger("SCRIPTED")
 
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
-def customRemainingField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customProjectedEstimate);
+def customRemainingField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customProjectedEstimateName);
 def customSpentField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customSpentFieldName);
 def circularityCache = []
 
@@ -57,9 +57,12 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
       case "Spike":
         // getting this compound remaining estimate from child
         Double projectedEstimate = getCustomFieldValue(issue, customRemainingField)
+        log.info(String.format("%sget %s for %s: %s", pad, customRemainingField.getName(), issue.getKey(), projectedEstimate))
         // getting this compound remaining estimate from child
         Double timeSpent = getCustomFieldValue(issue, customSpentField)
+        log.info(String.format("%sget %s for %s: %s", pad, customSpentField.getName(), issue.getKey(), timeSpent))
         result = (double) (timeSpent / projectedEstimate)
+        break;
       case "Sub-task":
       default:
         result = 0

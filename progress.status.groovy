@@ -4,58 +4,38 @@ import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
 import groovy.xml.MarkupBuilder
 import com.atlassian.jira.issue.Issue
-import com.atlassian.jira.ManagerFactory
 import com.atlassian.jira.config.properties.APKeys
+import com.atlassian.jira.issue.fields.CustomField;
 
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
+def log = Logger.getLogger("SCRIPTED")
 
-def log = Logger.getLogger("COMPUTED")
-log.setLevel(Level.DEBUG)
+def customCommercialField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Commercial Estimate");
+def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
+def customRemainingEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
+def customOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
+def customProgressField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Time Spent)");
+
+Double getCustomFieldValue(Issue issue, CustomField customField) {
+  def customValue
+  if (customField != null) {
+    customValue = issue.getCustomFieldValue(customField);
+  }
+  if (customValue != null) {
+    return (double) customValue
+  }
+  return 0
+}
 
 StringWriter writer = new StringWriter()
 MarkupBuilder builder = new MarkupBuilder(writer)
 
-def thisCompoundTimeSpent = 0;
-def thisCompoundRemainingEstimate = 0;
-def thisCompoundOriginalEstimate = 0;
-def thisCompoundProgress = 0;
-
-def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
-def customTimeSpent
-if(customTimeSpentField != null) {
-    customTimeSpent = issue.getCustomFieldValue(customTimeSpentField);
-}
-if (customTimeSpent != null) {
-    thisCompoundTimeSpent = (double) customTimeSpent
-}
-
-def customRemainingEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
-def customRemainingEstimate
-if(customRemainingEstimateField != null) {
-    customRemainingEstimate = issue.getCustomFieldValue(customRemainingEstimateField);
-} 
-if (customRemainingEstimate != null) {
-    thisCompoundRemainingEstimate = (double) customRemainingEstimate
-}
-
-def customOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
-def customOriginalEstimate
-if(customOriginalEstimateField != null) {
-    customOriginalEstimate = issue.getCustomFieldValue(customOriginalEstimateField);
-} 
-if (customOriginalEstimate != null) {
-    thisCompoundOriginalEstimate = (double) customOriginalEstimate
-}
-
-def customProgressField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Time Spent)");
-def customProgress
-if(customProgressField != null) {
-    customProgress = issue.getCustomFieldValue(customProgressField);
-} 
-if (customProgress != null) {
-    thisCompoundProgress = (double) customProgress
-}
+def thisCompoundCommercialEstimate = getCustomFieldValue(issue, customCommercialField);
+def thisCompoundTimeSpent = getCustomFieldValue(issue, customTimeSpentField);
+def thisCompoundRemainingEstimate = getCustomFieldValue(issue, customRemainingEstimateField);
+def thisCompoundOriginalEstimate = getCustomFieldValue(issue, customOriginalEstimateField);
+def thisCompoundProgress = getCustomFieldValue(issue, customProgressField);
 
 def isUnderEstimated = true
 def total = thisCompoundTimeSpent + thisCompoundRemainingEstimate
@@ -72,9 +52,17 @@ def percentTimeSpent = (total > 0) ? (int)(thisCompoundTimeSpent / total * 100) 
 def percentDifference = (total > 0) ? (int)(difference / total * 100) : 0
 
 builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-height: 22px;") {
+    if ((issue.getIssueType().getName() == "Milestone" || issue.getIssueType().getName() == "Epic") && thisCompoundOriginalEstimate > 0) {
+        div (class: "", style: "padding: 3px 7px; color: #999; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
+            span ("C ")
+        }
+        div (class: "", title: "Commercial Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #999; border-radius: 4px; margin-right: 10px;") {
+            span (class: "", String.format((thisCompoundCommercialEstimate*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundOriginalEstimate))
+        }
+    }
     if (thisCompoundOriginalEstimate > 0) {
         div (class: "", style: "padding: 3px 7px; color: #89afd7; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
-            span ("E ")
+            span ("O ")
         }
         div (class: "", title: "Original Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #89afd7; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format((thisCompoundOriginalEstimate*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundOriginalEstimate))
