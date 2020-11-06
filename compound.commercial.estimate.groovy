@@ -35,42 +35,56 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
   def pad = StringUtils.repeat(" ", level*2)
   log.info(String.format("%sbegin calculate %s for %s", pad, customField.getName(), issue.getKey()))
   
-  Double thisEstimate = 0
-  Double subsEstimate = 0
+  Double result
   
   // avoiding circularity
   if (circularityCache.contains(issue) == false) {
     circularityCache.add(issue)
 
+    // getting original estimate
+    Double thisEstimate = 0
+    def estimate = issue.getOriginalEstimate()
+    if (estimate > 0) {
+      thisEstimate = (double) estimate / (8 * 3600)
+    }
+    log.info(String.format("%sthis compound commercial estimate for %s: %s", pad, issue.getKey(), thisEstimate))
+
     // checking issue type
-    if (issue.getIssueType().getName() == "Milestone" || issue.getIssueType().getName() == "Epic") {
-      // getting original estimate
-      def estimate = issue.getOriginalEstimate()
-      if (estimate > 0) {
-        thisEstimate = (double) estimate / (8 * 3600)
-      }
-      log.info(String.format("%sthis compound commercial estimate for %s: %s", pad, issue.getKey(), thisEstimate))
-      if (thisEstimate == 0 && issue.getIssueType().getName() == "Milestone") {
-        // traversing direct children
-        issueLinkManager.getOutwardLinks(issue.id).each {
-          issueLink ->
-          Issue childIssue = issueLink.getDestinationObject()
-          log.info(String.format("%sprocessing child of %s: %s", pad, issue.getKey(), childIssue.getKey()))
-          if (issueLink.issueLinkType.name == "Hierarchy") {
-            if (childIssue.getIssueType().getName() == "Epic") {
-              // reading this custom - scripted - field on child
-              //Double childEstimate = getCustomFieldValue(childIssue, customField)
-              Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, customField, log, level+1)
-              log.info(String.format("%schild compound commercial estimate for %s: %s", pad, childIssue.getKey(), childEstimate))
-              // adding each child estimate
-              subsEstimate += childEstimate
+    String issueTypeName = issue.getIssueType().getName()
+    switch (issueTypeName) {
+      case "Milestone":
+        if (thisEstimate == 0) {
+          // traversing direct children
+          Double subsEstimate = 0
+          issueLinkManager.getOutwardLinks(issue.id).each {
+            issueLink ->
+            Issue childIssue = issueLink.getDestinationObject()
+            String childIssueTypeName = childIssue.getIssueType().getName()
+            log.info(String.format("%sprocessing child of %s: %s", pad, issue.getKey(), childIssue.getKey()))
+            if (issueLink.issueLinkType.name == "Hierarchy") {
+              if (childIssue.getIssueType().getName() == "Epic") {
+                // getting this estimate from child
+                //Double childEstimate = getCustomFieldValue(childIssue, customField)
+                Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, customField, log, level+1)
+                log.info(String.format("%schild compound commercial estimate for %s: %s", pad, childIssue.getKey(), childEstimate))
+                // adding each child estimate
+                subsEstimate += childEstimate
+              }
             }
           }
+          result = subsEstimate
+        } else {
+          result = thisEstimate
         }
-      }
+        break;
+      case "Epic":
+        result = thisEstimate
+        break;
+      default:
+        result = 0
+        break;
     }
   }
-  Double result = (subsEstimate > 0) ? subsEstimate : thisEstimate
   log.info(String.format("%send calculate %s for %s: %s", pad, customField.getName(), issue.getKey(), result))
   return result
 }
