@@ -1,5 +1,5 @@
 // Number|Number
-enableCache = { ->false }
+enableCache = { ->true }
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
@@ -15,9 +15,9 @@ import org.apache.log4j.Level
 def log = Logger.getLogger("SCRIPTED")
 
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
+def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Commercial Estimate");
 def circularityCache = []
 
-def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Commercial Estimate");
 Double getCustomFieldValue(Issue issue, CustomField customField) {
   def customValue
   if (customField != null) {
@@ -53,4 +53,26 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
         issueLinkManager.getOutwardLinks(issue.id).each {
           issueLink ->
           Issue childIssue = issueLink.getDestinationObject()
-          log.info(String.format("%sprocessing child of %s: %s", pad, issue.getKey(), childIssue.get
+          log.info(String.format("%sprocessing child of %s: %s", pad, issue.getKey(), childIssue.getKey()))
+          if (issueLink.issueLinkType.name == "Hierarchy") {
+            if (childIssue.getIssueType().getName() == "Epic") {
+              // reading this custom - scripted - field on child
+              //Double childEstimate = getCustomFieldValue(childIssue, customField)
+              Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, customField, log, level+2)
+              log.info(String.format("%schild compound commercial estimate for %s: %s", pad, childIssue.getKey(), childEstimate))
+              // adding each child estimate
+              if (childEstimate != null) {
+                subsEstimate += childEstimate
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  Double result = (subsEstimate > 0) ? subsEstimate : thisEstimate
+  log.info(String.format("%send calculate %s for %s: %s", pad, customField.getName(), issue.getKey(), result))
+  return result
+}
+
+return calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
