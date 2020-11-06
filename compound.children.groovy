@@ -1,4 +1,5 @@
 enableCache = {-> false}
+def customFieldName = "Compound Children"
 
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
@@ -14,9 +15,7 @@ import com.atlassian.jira.issue.util.DefaultIssueChangeHolder;
 
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-
-def log = Logger.getLogger("COMPUTED")
-log.setLevel(Level.DEBUG)
+def log = Logger.getLogger("SCRIPTED")
 
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def customFieldManager = ComponentAccessor.getCustomFieldManager()
