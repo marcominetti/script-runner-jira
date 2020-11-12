@@ -43,7 +43,7 @@ Double calculateEstimate(Issue issue, List circularityCache, CustomField customF
     Double compoundProgress = getCustomFieldValue(issue, customCompoundProgressField)
     log.info(String.format("%sget %s for %s: %s", pad, customCompoundProgressField.getName(), issue.getKey(), compoundProgress))
 
-    result = compoundOriginalEstimate * (compoundProgress).div(100)
+    result = compoundOriginalEstimate * compoundProgress
   }
   log.info(String.format("%send calculate %s for %s: %s", pad, customField.getName(), issue.getKey(), result))
   return result
