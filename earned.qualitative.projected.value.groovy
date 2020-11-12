@@ -10,7 +10,6 @@ import org.apache.log4j.Logger
 
 def log = Logger.getLogger('SCRIPTED')
 
-def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Earned Qualitative Projected Value")
 def customCompoundOriginalEstimateField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
 def customProgressField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Custom Progress");
@@ -27,7 +26,7 @@ Double getCustomFieldValue(Issue issue, CustomField customField) {
   return 0
 }
 
-Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomField customField, CustomField customCompoundOriginalEstimateField, CustomField customProgressField, Logger log, Integer level) {
+Double calculateEstimate(Issue issue, List circularityCache, CustomField customField, CustomField customCompoundOriginalEstimateField, CustomField customProgressField, Logger log, Integer level) {
   def pad = StringUtils.repeat(" ", level * 2)
   log.info(String.format("%sbegin calculate %s for %s", pad, customField.getName(), issue.getKey()))
 
@@ -41,14 +40,19 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
     Double compoundOriginalEstimate = getCustomFieldValue(issue, customCompoundOriginalEstimateField)
     log.info(String.format("%sget %s for %s: %s", pad, customCompoundOriginalEstimateField.getName(), issue.getKey(), compoundOriginalEstimate))
 
-    // getting compound progress
+    // getting custom progress
     Double customProgress = getCustomFieldValue(issue, customProgressField)
     log.info(String.format("%sget %s for %s: %s", pad, customProgressField.getName(), issue.getKey(), customProgress))
 
-    result = compoundOriginalEstimate * customProgress
+    result = compoundOriginalEstimate * (customProgress).div(100)
   }
   log.info(String.format("%send calculate %s for %s: %s", pad, customField.getName(), issue.getKey(), result))
   return result
 }
 
-return calculateEstimate(issue, circularityCache, issueLinkManager, customField, customCompoundOriginalEstimateField, customProgressField, log, 0)
+Double result = calculateEstimate(issue, circularityCache, customField, customCompoundOriginalEstimateField, customProgressField, log, 0)
+if (result > 0) {
+  return result.round(2) + "d"
+} else {
+  return "n.d.";
+}

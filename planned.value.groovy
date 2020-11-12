@@ -67,4 +67,9 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
   return result
 }
 
-return calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
+Double result = calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
+if (result > 0) {
+  return result.round(2) + "d"
+} else {
+  return "n.d.";
+}
