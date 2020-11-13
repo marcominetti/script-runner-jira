@@ -1,129 +1,136 @@
-enableCache = {-> false}
+enableCache = { ->false }
 
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.issue.Issue
+import com.atlassian.jira.issue.IssueManager;
+import com.atlassian.jira.issue.link.IssueLink;
 import com.atlassian.jira.issue.resolution.Resolution
 import com.atlassian.jira.issue.link.IssueLinkManager
 import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.fields.CustomField;
 import com.atlassian.jira.issue.ModifiedValue;
 import com.atlassian.jira.issue.util.DefaultIssueChangeHolder;
-
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
-def log = Logger.getLogger("COMPUTED")
-log.setLevel(Level.DEBUG)
+def log = Logger.getLogger("SCRIPTED")
 
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def customFieldManager = ComponentAccessor.getCustomFieldManager()
-
+def customWarningField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Warnings");
 def circularityCache = []
-List<Map<String,String>> anomalies = new ArrayList<Map<String,String>>()
 
-def createAnomaly(List<Map<String,String>> anomalies, Issue issue, String level, String description) {
-    Map<String,String> anomaly = new HashMap<String, String>()
-    anomaly.put("description", description)
-    anomaly.put("issue", issue.getKey())
-    anomaly.put("level", level)
-    anomaly.put("resolution", (issue.getResolution() != null)?"true":"false")
-    anomaly.put("status", issue.getStatus().getName())
-    anomaly.put("type", issue.getIssueType().getName())
-    anomalies.add(anomaly)
-}
+List<Map<String, String>> anomalies = new ArrayList<Map<String, String>>()
 
-def calculateAnomalies(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, Logger log, List<Map<String,String>> anomalies) {
-    // avoiding circularity
-    if (circularityCache.contains(issue) == false) {
-        circularityCache.add(issue)
-    
-        String thisKey = issue.getKey()
-        Long thisOriginalEstimate = issue.getOriginalEstimate()
-        Long thisTimeSpent = issue.getTimeSpent()
-        Long thisRemainingEstimate = issue.getEstimate()    
-        Long compoundOriginalEstimate
-        Long compoundTimeSpent
-        Long compoundRemainingEstimate
-        String thisStatusName = issue.getStatus().getName()
-        Resolution resolution = issue.getResolution()
-        int childCount = 0
+def getCustomFieldAnomalies(List<Map<String, String>> anomalies, Issue issue, CustomField customField) {
+  def customAnomalies
+  def jsonParser
+  def issueAnomalies
 
-        // traversing direct children
-        issueLinkManager.getOutwardLinks(issue.id).each {
-            issueLink ->
-            if (issueLink.issueLinkType.name == "Hierarchy"
-                || issueLink.issueLinkType.name == "Epic-Story Link"
-                || issueLink.issueLinkType.isSubTaskLinkType() == true) {
-
-                childCount++;
-                Issue childIssue = issueLink.getDestinationObject()
-                
-                Long childOriginalEstimate = issue.getOriginalEstimate()
-                Long childTimeSpent = issue.getTimeSpent()
-                Long childRemainingEstimate = issue.getEstimate() 
-
-                if (childOriginalEstimate != null) {
-                    if (compoundOriginalEstimate == null) {
-                        compoundOriginalEstimate = 0
-                    }
-                    compoundOriginalEstimate += childOriginalEstimate
-                }
-
-                if (childTimeSpent != null) {
-                    if (compoundTimeSpent == null) {
-                        compoundTimeSpent = 0
-                    }
-                    compoundTimeSpent += childTimeSpent
-                }
-
-                if (childRemainingEstimate != null) {
-                    if (compoundRemainingEstimate == null) {
-                        compoundRemainingEstimate = 0
-                    }
-                    compoundRemainingEstimate += childRemainingEstimate
-                }
-
-                def customWarningField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Warnings");
-                if(customWarningField != null) {
-                    def customAnomalies = childIssue.getCustomFieldValue(customWarningField);
-                    if (customAnomalies != null) {
-                        def jsonParser = new JsonSlurper()
-                        def childAnomalies = jsonParser.parseText(customAnomalies.toString())
-                        anomalies.addAll((List<Map<String,String>>) childAnomalies)
-                    }
-                }
-
-            }
-        }
-
-        if (childCount == 0) {
-			if (thisOriginalEstimate == null || thisOriginalEstimate == 0) {
-                createAnomaly(anomalies, issue, "WARN", "issue senza original estimate e senza figli")
-            }
-            if (thisRemainingEstimate != null && thisRemainingEstimate > 0 && resolution != null) {
-                createAnomaly(anomalies, issue, "WARN", "issue risolta ma con remaining estimate: azzerare il remaining sulla issue " + issue.getKey())
-            }
-            if ((thisRemainingEstimate == null || thisRemainingEstimate == 0) && resolution == null) {
-                createAnomaly(anomalies, issue, "WARN", "issue non risolta ma senza remaining estimate: chiudere la issue o adeguare il remaining sulla issue " + issue.getKey())
-            }
-        } else {
-            if (thisOriginalEstimate != null && thisOriginalEstimate > 0) {
-                createAnomaly(anomalies, issue, "WARN", "issue padre ma con original estimate: rimuovere l'original estimate dalla issue " + issue.getKey() + " assicurandosi di averla distribuita tra i figli")
-            }
-            if (thisRemainingEstimate != null && thisRemainingEstimate > 0) {
-                createAnomaly(anomalies, issue, "WARN", "issue padre ma con remaining estimate: rimuovere la remaining estimate dalla issue " + issue.getKey() + " assicurandosi di averla distribuita tra i figli")
-            }
-            if (thisTimeSpent != null && thisTimeSpent > 0) {
-                createAnomaly(anomalies, issue, "WARN", "issue padre ma con worklog: rimuovere il worklog dalla issue " + issue.getKey() + " ed inserilo in uno dei figli")
-            }
-        }
+  if (customField != null) {
+    customAnomalies = issue.getCustomFieldValue(customField);
+    if (customAnomalies != null) {
+      jsonParser = new JsonSlurper()
+      issueAnomalies = jsonParser.parseText(customAnomalies.toString())
+      anomalies.addAll((List<Map<String, String>> ) issueAnomalies)
     }
+  }
 }
 
-calculateAnomalies(issue,circularityCache,issueLinkManager,log,anomalies)
+def createAnomaly(List<Map<String, String>> anomalies, Issue issue, String level, String title, String description) {
+  Map<String, String> anomaly = new HashMap<String, String>()
+  anomaly.put("title", title)
+  anomaly.put("description", description)
+  anomaly.put("issue", issue.getKey())
+  anomaly.put("level", level)
+  anomaly.put("resolution", (issue.getResolution() != null) ? "true" : "false")
+  anomaly.put("status", issue.getStatus().getName())
+  anomaly.put("type", issue.getIssueType().getName())
+  anomalies.add(anomaly)
+}
+
+// Checking for Original Estimate
+def checkForOriginalEstimate(Issue issue, List<Map<String, String>> anomalies) {
+
+  String issueTypeName = issue.getIssueType().getName()
+  switch (issueTypeName) {
+  case "Milestone":
+  case "Epic":
+    def originalEstimate = issue.getOriginalEstimate()
+    if (originalEstimate == null || originalEstimate == 0) {
+      createAnomaly(anomalies, issue, "WARN", issueTypeName + " not estimated", "For this issue is not defined original estimate.")
+    }
+    break;
+  case "Story":
+  case "Task":
+  case "Bug":
+  case "Change Request":
+  case "Spike":
+    def originalEstimate = issue.getOriginalEstimate()
+    if (originalEstimate == null || originalEstimate == 0) {
+      createAnomaly(anomalies, issue, "WARN", "Operative isse not estimated", "For this issue is not defined original estimate.")
+    }
+    break;
+  }
+}
+
+// Checking for linked Issues
+def checkForLinkedIssues(Issue issue, IssueLinkManager issueLinkManager, List<Map<String, String>> anomalies, Logger log) {
+
+  def numberOfMilestones = 0
+  def numberOfEpics = 0
+
+  def projectId = issue.getProjectId()
+  def issueManager = ComponentAccessor.getIssueManager()
+  List<Issue> allIssues = issueManager.getIssueObjects(issueManager.getIssueIdsForProject(projectId))
+  allIssues.each {
+    i ->
+    if (i.getIssueType().getName() == "Milestone") {
+      numberOfMilestones++
+    } else if (i.getIssueType().getName() == "Epic") {
+      numberOfEpics++
+    }
+  }
+
+  String issueTypeName = issue.getIssueType().getName()
+  switch (issueTypeName) {
+  case "Epic":
+    if (numberOfMilestones > 0) {
+      List<IssueLink> inwardLinks = issueLinkManager.getInwardLinks(issue.id)
+      if (inwardLinks.isEmpty()) {
+        createAnomaly(anomalies, issue, "WARN", "Epic not linked", "This issue is not linked. Please relates Epics to a Milestone of the project.")
+      }
+    }
+    break;
+  case "Story":
+  case "Task":
+  case "Bug":
+  case "Change Request":
+  case "Spike":
+    if (numberOfEpics > 0) {
+      List<IssueLink> inwardLinks = issueLinkManager.getInwardLinks(issue.id)
+      if (inwardLinks.isEmpty()) {
+        createAnomaly(anomalies, issue, "WARN", "Operative issue not linked", "This issue is not linked. Please relates this issue to an Epic of the project.")
+      }
+    }
+    break;
+  }
+
+}
+
+def calculateAnomalies(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomField customWarningField, Logger log, List<Map<String, String>> anomalies) {
+  // avoiding circularity
+  if (circularityCache.contains(issue) == false) {
+    circularityCache.add(issue)
+    checkForOriginalEstimate(issue, anomalies)
+    checkForLinkedIssues(issue, issueLinkManager, anomalies, log)
+  }
+}
+
+calculateAnomalies(issue, circularityCache, issueLinkManager, customWarningField, log, anomalies)
 
 def result = new JsonBuilder(anomalies);
 return result.toString()
