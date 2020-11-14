@@ -19,26 +19,8 @@ import org.apache.log4j.Level
 def log = Logger.getLogger("SCRIPTED")
 
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
-def customFieldManager = ComponentAccessor.getCustomFieldManager()
 def customWarningField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Warnings");
 def circularityCache = []
-
-List<Map<String, String>> anomalies = new ArrayList<Map<String, String>>()
-
-def getCustomFieldAnomalies(List<Map<String, String>> anomalies, Issue issue, CustomField customField) {
-  def customAnomalies
-  def jsonParser
-  def issueAnomalies
-
-  if (customField != null) {
-    customAnomalies = issue.getCustomFieldValue(customField);
-    if (customAnomalies != null) {
-      jsonParser = new JsonSlurper()
-      issueAnomalies = jsonParser.parseText(customAnomalies.toString())
-      anomalies.addAll((List<Map<String, String>> ) issueAnomalies)
-    }
-  }
-}
 
 def createAnomaly(List<Map<String, String>> anomalies, Issue issue, String level, String title, String description) {
   Map<String, String> anomaly = new HashMap<String, String>()
@@ -71,7 +53,7 @@ def checkForOriginalEstimate(Issue issue, List<Map<String, String>> anomalies) {
   case "Spike":
     def originalEstimate = issue.getOriginalEstimate()
     if (originalEstimate == null || originalEstimate == 0) {
-      createAnomaly(anomalies, issue, "WARN", "Operative isse not estimated", "For this issue is not defined original estimate.")
+      createAnomaly(anomalies, issue, "WARN", "Operative issue not estimated", "For this issue is not defined original estimate.")
     }
     break;
   }
@@ -118,19 +100,21 @@ def checkForLinkedIssues(Issue issue, IssueLinkManager issueLinkManager, List<Ma
     }
     break;
   }
-
 }
 
-def calculateAnomalies(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomField customWarningField, Logger log, List<Map<String, String>> anomalies) {
+String calculateAnomalies(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomField customWarningField, Logger log) {
+  List<Map<String, String>> anomalies = new ArrayList<Map<String, String>>()
+  String result
+  def json
+  
   // avoiding circularity
   if (circularityCache.contains(issue) == false) {
     circularityCache.add(issue)
     checkForOriginalEstimate(issue, anomalies)
     checkForLinkedIssues(issue, issueLinkManager, anomalies, log)
   }
+  json = new JsonBuilder(anomalies);
+  result = json as String;
 }
 
-calculateAnomalies(issue, circularityCache, issueLinkManager, customWarningField, log, anomalies)
-
-def result = new JsonBuilder(anomalies);
-return result.toString()
+return calculateAnomalies(issue, circularityCache, issueLinkManager, customWarningField, log)
