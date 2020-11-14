@@ -13,7 +13,6 @@ def customWarning = ComponentAccessor.getCustomFieldManager().getCustomFieldObje
 
 StringWriter writer = new StringWriter()
 MarkupBuilder builder = new MarkupBuilder(writer)
-List<Map<String, String>> warnings = new ArrayList<Map<String, String>>()
 
 def getCustomFieldValue(Issue issue, CustomField customField) {
   def customValue
@@ -23,24 +22,37 @@ def getCustomFieldValue(Issue issue, CustomField customField) {
   if (customValue != null) {
     return customValue
   }
+  return null
 }
 
-def json = getCustomFieldValue(issue, customWarning)
-warnings = new JsonSlurper().parseText(json.toString()) as List;
+def returnWarnings(Issue issue, CustomField customField, StringWriter writer, MarkupBuilder builder) {
 
-builder.div(style: "display: inline-flex;") {
-  table(style: "width:100%; border-collapse: collapse;") {
-    tbody {
-      warnings.each {
-        map ->
-        tr {
-          td(style: "font-weight: bold; text-align: left;", map.title + ":")
-        }
-        tr {
-          td(style: "text-align: left; padding-left: 5px; padding-bottom: 10px;","- " + map.description)
+  // get warnings from Compound Warnings
+  def warnings = getCustomFieldValue(issue, customField)
+  if (warnings != null) {
+    List<Map<String, String>> warningsList = new ArrayList<Map<String, String>> ()
+    warningsList = new JsonSlurper().parseText(warnings.toString()) as List;
+
+    // creating warning table
+    builder.div(style: "display: inline-flex;") {
+      table(style: "width:100%; border-collapse: collapse;") {
+        tbody {
+          warningsList.each {
+            map ->
+            tr {
+              td(style: "font-weight: bold; text-align: left;", map.title + ":")
+            }
+            tr {
+              td(style: "text-align: left; padding-left: 5px; padding-bottom: 10px;", "- " + map.description)
+            }
+          }
         }
       }
     }
+    return writer.toString()
+  } else {
+    return ""
   }
 }
-return writer.toString()
+
+return returnWarnings(issue, customWarning, writer, builder)
