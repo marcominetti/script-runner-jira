@@ -62,7 +62,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
         Double timeSpent = getCustomFieldValue(issue, customSpentField)
         log.info(String.format("%sget %s for %s: %s", pad, customSpentField.getName(), issue.getKey(), timeSpent))
         if (projectedEstimate > 0) {
-        	result = (double) (timeSpent / projectedEstimate)
+        	result = (timeSpent / projectedEstimate) as Double;
         } else {
             return 0
         }

@@ -26,7 +26,7 @@ Double getCustomFieldValue(Issue issue, CustomField customField) {
     customValue = issue.getCustomFieldValue(customField);
   }
   if (customValue != null) {
-    return (double) customValue
+    return customValue as Double;
   }
   return 0
 }
@@ -45,7 +45,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
     Double thisEstimate = 0
     def estimate = issue.getTimeSpent()
     if (estimate > 0) {
-      thisEstimate = (double) estimate / (8 * 3600)
+      thisEstimate = estimate / (8 * 3600) as Double;
     }
     log.info(String.format("%sthis %s for %s: %s", pad, customField.getName(), issue.getKey(), thisEstimate))
 

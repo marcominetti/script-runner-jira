@@ -21,7 +21,7 @@ Double getCustomFieldValue(Issue issue, CustomField customField) {
     customValue = issue.getCustomFieldValue(customField);
   }
   if (customValue != null) {
-    return (double) customValue
+    return customValue as Double;
   }
   return 0
 }

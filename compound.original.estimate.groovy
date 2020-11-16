@@ -48,7 +48,7 @@ if (issue.getIssueType().getName() == "Epic") {
   def customPortfolioField = ComponentAccessor.getCustomFieldManager().getCustomFieldObject(customPortfolioFieldId);
   def milestonePortfolioKey = issue.getCustomFieldValue(customPortfolioField);
   if (milestonePortfolioKey != null) {
-    milestonePortfolio = issueManager.getIssueByCurrentKey((String)milestonePortfolioKey)
+    milestonePortfolio = issueManager.getIssueByCurrentKey(milestonePortfolioKey.toString())
   }
   if (milestonePortfolio != null) {
   	log.info(String.format("portfolio milestone for %s: %s", issue.getKey(), milestonePortfolio.getKey()))
@@ -93,7 +93,7 @@ Double getCustomFieldValue(Issue issue, CustomField customField) {
     customValue = issue.getCustomFieldValue(customField);
   }
   if (customValue != null) {
-    return (double) customValue
+    return customValue as Double;
   }
   return 0
 }
@@ -112,7 +112,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
     Double thisEstimate = 0
     def estimate = issue.getOriginalEstimate()
     if (estimate > 0) {
-      thisEstimate = (double) estimate / (8 * 3600)
+      thisEstimate = estimate / (8 * 3600) as Double;
     }
     log.info(String.format("%sthis %s for %s: %s", pad, customField.getName(), issue.getKey(), thisEstimate))
 

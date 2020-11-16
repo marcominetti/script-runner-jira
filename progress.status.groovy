@@ -47,10 +47,10 @@ if (thisCompoundOriginalEstimate > total) {
     total = thisCompoundOriginalEstimate
 }
 
-def percentOriginalEstimate = (total > 0) ? (int)(thisCompoundOriginalEstimate / total * 100) : 0
-def percentRemainingEstimate = (total > 0) ? (int)(thisCompoundRemainingEstimate / total * 100) : 0
-def percentTimeSpent = (total > 0) ? (int)(thisCompoundTimeSpent / total * 100) : 0
-def percentDifference = (total > 0) ? (int)(difference / total * 100) : 0
+def percentOriginalEstimate = (total > 0) ? (thisCompoundOriginalEstimate / total * 100) as Integer : 0
+def percentRemainingEstimate = (total > 0) ? (thisCompoundRemainingEstimate / total * 100) as Integer : 0
+def percentTimeSpent = (total > 0) ? (thisCompoundTimeSpent / total * 100) as Integer : 0
+def percentDifference = (total > 0) ? (difference / total * 100) as Integer : 0
 
 builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-height: 22px;") {
     if ((issue.getIssueType().getName() == "Milestone" || issue.getIssueType().getName() == "Epic") && thisCompoundOriginalEstimate > 0) {
@@ -90,7 +90,7 @@ builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-heigh
             span ("P ")
         }
         div (class: "", title: "Progress", style: "padding: 0px 8px; color: #333333; background-color: #eeeeee; border-radius: 4px; margin-right: 10px;") {
-            span (class: "", String.format("%.1f%%", (double)(thisCompoundProgress * 100)))
+            span (class: "", String.format("%.1f%%", (thisCompoundProgress * 100) as Double))
         }
         div (class: "", style: "") {
             table (style: "width: 150px; margin: 1px;", cellpadding:"0", cellspacing:"0") {

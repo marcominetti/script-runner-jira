@@ -107,23 +107,23 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"
             def issueProgress = 0
             if(customOriginalEstimateField != null) {
                 customValue = issue.getCustomFieldValue(customOriginalEstimateField);
-                issueOriginalEstimate = (customValue != null) ? (Double) customValue : 0;
+                issueOriginalEstimate = (customValue != null) ? customValue as Double : 0;
             }
             if(customRemainingEstimateField != null) {
                 customValue = issue.getCustomFieldValue(customRemainingEstimateField);
-                issueRemainingEstimate = (customValue != null) ? (Double) customValue : 0;
+                issueRemainingEstimate = (customValue != null) ? customValue as Double : 0;
             }
             if(customProjectedEstimateField != null) {
                 customValue = issue.getCustomFieldValue(customProjectedEstimateField);
-                issueProjectedEstimate = (customValue != null) ? (Double) customValue : 0;
+                issueProjectedEstimate = (customValue != null) ? customValue as Double : 0;
             }
             if(customTimeSpentField != null) {
                 customValue = issue.getCustomFieldValue(customTimeSpentField);
-                issueTimeSpent = (customValue != null) ? (Double) customValue : 0;
+                issueTimeSpent = (customValue != null) ? customValue as Double : 0;
             }        
             if(customProgressField != null) {
                 customValue = issue.getCustomFieldValue(customProgressField);
-                issueProgress += (customValue != null) ? (Double) customValue : 0;
+                issueProgress += (customValue != null) ? customValue as Double : 0;
             }
             originalEstimate += issueOriginalEstimate;
             remainingEstimate += issueRemainingEstimate;
@@ -157,11 +157,11 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"
         }
 
         HashMap<String, Object> result = new HashMap<>();
-        result.put("originalEstimate", (Double)originalEstimate);
-        result.put("remainingEstimate", (Double)remainingEstimate);
-        result.put("projectedEstimate", (Double)projectedEstimate);
-        result.put("timeSpent", (Double)timeSpent);
-        result.put("progress", (Double)progress);
+        result.put("originalEstimate", originalEstimate as Double);
+        result.put("remainingEstimate", remainingEstimate as Double);
+        result.put("projectedEstimate", projectedEstimate as Double);
+        result.put("timeSpent", timeSpent as Double);
+        result.put("progress", progress as Double);
         //result.put("warnings", anomalies);
         result.put("children", children)
         return Response.ok(new JsonBuilder(result).toString()).build();
