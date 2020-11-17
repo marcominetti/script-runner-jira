@@ -57,69 +57,93 @@ builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-heigh
         div (class: "", style: "padding: 3px 7px; color: #999; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
             span ("C ")
         }
-        div (class: "", title: "Commercial Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #999; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Commercial Estimate", style: "text-align: center; width: 50px; padding: 0px 8px; color: #ffffff; background-color: #999; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format((thisCompoundCommercialEstimate*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundOriginalEstimate))
         }
     }else{
         div (class: "", style: "padding: 3px 7px; color: #999; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
             span ("C ")
         }
-        div (class: "", title: "Commercial Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #999; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Commercial Estimate", style: "text-align: center; width: 50px; padding: 0px 8px; color: #ffffff; background-color: #999; border-radius: 4px; margin-right: 10px;") {
             span (class: "", "n.d.")
         }
     }
+}
+
+builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-height: 22px;") {
     if (thisCompoundOriginalEstimate > 0) {
         div (class: "", style: "padding: 3px 7px; color: #89afd7; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
             span ("O ")
         }
-        div (class: "", title: "Original Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #89afd7; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Original Estimate", style: "text-align: center; width: 50px; padding: 0px 8px; color: #ffffff; background-color: #89afd7; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format((thisCompoundOriginalEstimate*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundOriginalEstimate))
         }
     }else{
         div (class: "", style: "padding: 3px 7px; color: #89afd7; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
             span ("O ")
         }
-        div (class: "", title: "Original Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #89afd7; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Original Estimate", style: "text-align: center; width: 50px; padding: 0px 8px; color: #ffffff; background-color: #89afd7; border-radius: 4px; margin-right: 10px;") {
             span (class: "", "n.d.")
         }
     }
+}
+
+builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-height: 22px;") {
     if (thisCompoundRemainingEstimate > 0) {
         div (class: "", style: "padding: 3px 7px; color: #e2b36b; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
             span ("R ")
         }
-        div (class: "", title: "Remaining Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #ec8e00; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Remaining Estimate", style: "text-align: center; width: 50px; padding: 0px 8px; color: #ffffff; background-color: #ec8e00; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format((thisCompoundRemainingEstimate*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundRemainingEstimate))
         }
     }else{
         div (class: "", style: "padding: 3px 7px; color: #e2b36b; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
             span ("R ")
         }
-        div (class: "", title: "Remaining Estimate", style: "padding: 0px 8px; color: #ffffff; background-color: #ec8e00; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Remaining Estimate", style: "text-align: center; width: 50px; padding: 0px 8px; color: #ffffff; background-color: #ec8e00; border-radius: 4px; margin-right: 10px;") {
             span (class: "", "n.d.")
         }
     }
+}
+
+builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-height: 22px;") {
     if (thisCompoundTimeSpent > 0) {
         div (class: "", style: "padding: 3px 7px; color: #75af59; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
             span ("L ")
         }
-        div (class: "", title: "Logged", style: "padding: 0px 8px; color: #ffffff; background-color: #51a825; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Logged", style: "text-align: center; width: 50px; padding: 0px 8px; color: #ffffff; background-color: #51a825; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format((thisCompoundTimeSpent*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundTimeSpent))
         }
     }else{
         div (class: "", style: "padding: 3px 7px; color: #75af59; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
             span ("L ")
         }
-        div (class: "", title: "Logged", style: "padding: 0px 8px; color: #ffffff; background-color: #51a825; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Logged", style: "text-align: center; width: 50px; padding: 0px 8px; color: #ffffff; background-color: #51a825; border-radius: 4px; margin-right: 10px;") {
             span (class: "", "n.d.")
         }
     }
+}
+
+builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-height: 22px;") {
     if (thisCompoundOriginalEstimate > 0 || thisCompoundRemainingEstimate > 0 || thisCompoundTimeSpent > 0) {
         div (class: "", style: "padding: 3px 7px; color: #cccccc; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
             span ("P ")
         }
-        div (class: "", title: "Progress", style: "padding: 0px 8px; color: #333333; background-color: #eeeeee; border-radius: 4px; margin-right: 10px;") {
+        div (class: "", title: "Progress", style: "text-align: center; width: 50px; padding: 0px 8px; color: #333333; background-color: #eeeeee; border-radius: 4px; margin-right: 10px;") {
             span (class: "", String.format("%.1f%%", (thisCompoundProgress * 100) as Double))
         }
+    }else{
+        div (class: "", style: "padding: 3px 7px; color: #cccccc; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
+            span ("P ")
+        }
+        div (class: "", title: "Progress", style: "text-align: center; width: 50px; padding: 0px 8px; color: #333333; background-color: #eeeeee; border-radius: 4px; margin-right: 10px;") {
+            span (class: "", String.format("%.1f%%", 0 as Double))
+        }
+    }
+}
+
+builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-height: 22px;") {
+    if (thisCompoundOriginalEstimate > 0 || thisCompoundRemainingEstimate > 0 || thisCompoundTimeSpent > 0) {
         div (class: "", style: "") {
             table (style: "width: 150px; margin: 1px;", cellpadding:"0", cellspacing:"0") {
                 tbody () {
@@ -175,13 +199,6 @@ builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-heigh
                     }
                 }
             }
-        }
-    }else{
-        div (class: "", style: "padding: 3px 7px; color: #cccccc; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {
-            span ("P ")
-        }
-        div (class: "", title: "Progress", style: "padding: 0px 8px; color: #333333; background-color: #eeeeee; border-radius: 4px; margin-right: 10px;") {
-            span (class: "", String.format("%.1f%%", 0 as Double))
         }
     }
 }
