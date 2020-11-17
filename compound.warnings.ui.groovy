@@ -26,33 +26,39 @@ def getCustomFieldValue(Issue issue, CustomField customField) {
 }
 
 def returnWarnings(Issue issue, CustomField customField, StringWriter writer, MarkupBuilder builder) {
+  List<Map<String, String>> warningsList = new ArrayList<Map< String, String>>()
 
   // get warnings from Compound Warnings
   def warnings = getCustomFieldValue(issue, customField)
-  if (warnings != null) {
-    List<Map<String, String>> warningsList = new ArrayList<Map<String, String>> ()
-    warningsList = new JsonSlurper().parseText(warnings.toString()) as List;
+  warningsList = new JsonSlurper().parseText(warnings.toString()) as List;
 
+  if (!warningsList.isEmpty()) {
     // creating warning table
     builder.div(style: "display: inline-flex;") {
-      table(style: "width:100%; border-collapse: collapse;") {
+      table(style: "width:100%; border-collapse: collapse; border: 1px solid #ccc;") {
         tbody {
+          tr {
+            th(style: "padding: 3px; background-color: #ddd;", "Issue")
+            th(style: "padding: 3px; background-color: #ddd;", "Level")
+            th(style: "padding: 3px; background-color: #ddd;", "Type")
+            th(style: "padding: 3px; background-color: #ddd;", "Title")
+            th(style: "padding: 3px; background-color: #ddd;", "Description")
+          }
           warningsList.each {
-            map ->
-            tr {
-              td(style: "font-weight: bold; text-align: left;", map.title + ":")
-            }
-            tr {
-              td(style: "text-align: left; padding-left: 5px; padding-bottom: 10px;", "- " + map.description)
+            map ->tr {
+              td(style: "padding: 3px; border: 1px solid #ccc;", map.issue)
+              td(style: "padding: 3px; border: 1px solid #ccc;", map.level)
+              td(style: "padding: 3px; border: 1px solid #ccc;", map.type)
+              td(style: "padding: 3px; border: 1px solid #ccc;", map.title)
+              td(style: "padding: 3px; border: 1px solid #ccc;", map.description)
             }
           }
         }
       }
     }
     return writer.toString()
-  } else {
-    return ""
   }
+  return ""
 }
 
 return returnWarnings(issue, customWarning, writer, builder)
