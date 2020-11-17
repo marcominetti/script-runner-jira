@@ -35,15 +35,43 @@ def createAnomaly(List<Map<String, String>> anomalies, Issue issue, String level
 }
 
 // Checking for Original Estimate
-def checkForOriginalEstimate(Issue issue, List<Map<String, String>> anomalies) {
+def checkForOriginalEstimate(Issue issue, IssueLinkManager issueLinkManager, List<Map<String, String>> anomalies) {
 
   String issueTypeName = issue.getIssueType().getName()
   switch (issueTypeName) {
   case "Milestone":
-  case "Epic":
-    def originalEstimate = issue.getOriginalEstimate()
-    if (originalEstimate == null || originalEstimate == 0) {
+    if (issue.getOriginalEstimate() == null || issue.getOriginalEstimate() == 0) {
       createAnomaly(anomalies, issue, "WARN", issueTypeName + " not estimated", "For this issue is not defined original estimate.")
+    }
+    issueLinkManager.getOutwardLinks(issue.id).each {
+      issueLink ->
+      Issue childIssue = issueLink.getDestinationObject()
+      String childIssueTypeName = childIssue.getIssueType().getName()
+      if (issueLink.issueLinkType.name == "Hierarchy" && childIssueTypeName == "Epic") {
+        if (childIssue.getOriginalEstimate() == null || childIssue.getOriginalEstimate() == 0) {
+          createAnomaly(anomalies, childIssue, "WARN", childIssueTypeName + " not estimated", "For this issue is not defined original estimate.")
+        }
+      }
+    }
+    break;
+  case "Epic":
+    if (issue.getOriginalEstimate() == null || issue.getOriginalEstimate() == 0) {
+      createAnomaly(anomalies, issue, "WARN", issueTypeName + " not estimated", "For this issue is not defined original estimate.")
+    }
+    issueLinkManager.getOutwardLinks(issue.id).each {
+      issueLink ->
+      Issue childIssue = issueLink.getDestinationObject()
+      String childIssueTypeName = childIssue.getIssueType().getName()
+      if (issueLink.issueLinkType.name == "Epic-Story Link" && 
+      ((childIssueTypeName == "Story" 
+      || childIssueTypeName == "Task" 
+      || childIssueTypeName == "Bug" 
+      || childIssueTypeName == "Change Request" 
+      || childIssueTypeName == "Spike"))) {
+        if (childIssue.getOriginalEstimate() == null || childIssue.getOriginalEstimate() == 0) {
+          createAnomaly(anomalies, childIssue, "WARN", "Operative issue not estimated", "For this issue is not defined original estimate.")
+        }
+      }
     }
     break;
   case "Story":
@@ -51,8 +79,7 @@ def checkForOriginalEstimate(Issue issue, List<Map<String, String>> anomalies) {
   case "Bug":
   case "Change Request":
   case "Spike":
-    def originalEstimate = issue.getOriginalEstimate()
-    if (originalEstimate == null || originalEstimate == 0) {
+    if (issue.getOriginalEstimate() == null || issue.getOriginalEstimate() == 0) {
       createAnomaly(anomalies, issue, "WARN", "Operative issue not estimated", "For this issue is not defined original estimate.")
     }
     break;
@@ -106,11 +133,11 @@ String calculateAnomalies(Issue issue, List circularityCache, IssueLinkManager i
   List<Map<String, String>> anomalies = new ArrayList<Map<String, String>>()
   String result
   def json
-  
+
   // avoiding circularity
   if (circularityCache.contains(issue) == false) {
     circularityCache.add(issue)
-    checkForOriginalEstimate(issue, anomalies)
+    checkForOriginalEstimate(issue, issueLinkManager, anomalies)
     checkForLinkedIssues(issue, issueLinkManager, anomalies, log)
   }
   json = new JsonBuilder(anomalies);
