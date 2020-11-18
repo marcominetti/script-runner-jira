@@ -39,7 +39,6 @@ def returnWarnings(Issue issue, CustomField customField, StringWriter writer, Ma
         tbody {
           tr {
             th(style: "padding: 3px; background-color: #ddd;", "Issue")
-            th(style: "padding: 3px; background-color: #ddd;", "Level")
             th(style: "padding: 3px; background-color: #ddd;", "Type")
             th(style: "padding: 3px; background-color: #ddd;", "Title")
             th(style: "padding: 3px; background-color: #ddd;", "Description")
@@ -47,7 +46,6 @@ def returnWarnings(Issue issue, CustomField customField, StringWriter writer, Ma
           warningsList.each {
             map ->tr {
               td(style: "padding: 3px; border: 1px solid #ccc;", map.issue)
-              td(style: "padding: 3px; border: 1px solid #ccc;", map.level)
               td(style: "padding: 3px; border: 1px solid #ccc;", map.type)
               td(style: "padding: 3px; border: 1px solid #ccc;", map.title)
               td(style: "padding: 3px; border: 1px solid #ccc;", map.description)
