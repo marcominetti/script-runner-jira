@@ -1,6 +1,6 @@
 // Number|Number
 enableCache = { ->false }
-def customFieldName = 'Planned Value'
+def customFieldName = 'Budget At Completion'
 
 import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.issue.Issue

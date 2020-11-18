@@ -37,16 +37,16 @@ def returnWarnings(Issue issue, CustomField customField, StringWriter writer, Ma
     builder.div(style: "display: inline-flex;") {
       table(style: "width:100%; border-collapse: collapse; border: 1px solid #ccc;") {
         tbody {
-          tr {
-            th(style: "padding: 3px; background-color: #ddd;", "Issue")
-            th(style: "padding: 3px; background-color: #ddd;", "Type")
+          tr (style: "padding: 3px; border: 1px solid #ccc;"){
+            th(style: "padding: 3px; background-color: #ddd;", "Issue Key")
+            th(style: "padding: 3px; background-color: #ddd;", "Issue Type")
             th(style: "padding: 3px; background-color: #ddd;", "Title")
             th(style: "padding: 3px; background-color: #ddd;", "Description")
           }
           warningsList.each {
             map ->tr {
-              td(style: "padding: 3px; border: 1px solid #ccc;", map.issue)
-              td(style: "padding: 3px; border: 1px solid #ccc;", map.type)
+              td(style: "padding: 3px; background-color: #f5f5f5;", map.issue)
+              td(style: "padding: 3px; background-color: #f5f5f5;", map.type)
               td(style: "padding: 3px; border: 1px solid #ccc;", map.title)
               td(style: "padding: 3px; border: 1px solid #ccc;", map.description)
             }

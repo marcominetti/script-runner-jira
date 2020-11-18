@@ -51,6 +51,21 @@ def checkForOriginalEstimate(Issue issue, IssueLinkManager issueLinkManager, Lis
         if (childIssue.getOriginalEstimate() == null || childIssue.getOriginalEstimate() == 0) {
           createAnomaly(anomalies, childIssue, "WARN", childIssueTypeName + " not estimated", "For this issue is not defined original estimate.")
         }
+          issueLinkManager.getOutwardLinks(childIssue.id).each {
+          subIssueLink ->
+          Issue subChildIssue = subIssueLink.getDestinationObject()
+          String subChildIssueTypeName = subChildIssue.getIssueType().getName()
+          if (subIssueLink.issueLinkType.name == "Epic-Story Link" && 
+          ((subChildIssueTypeName == "Story" 
+          || subChildIssueTypeName == "Task" 
+          || subChildIssueTypeName == "Bug" 
+          || subChildIssueTypeName == "Change Request" 
+          || subChildIssueTypeName == "Spike"))) {
+            if (subChildIssue.getOriginalEstimate() == null || subChildIssue.getOriginalEstimate() == 0) {
+              createAnomaly(anomalies, subChildIssue, "WARN", "Operative issue not estimated", "For this issue is not defined original estimate.")
+            }
+          }
+        }
       }
     }
     break;
