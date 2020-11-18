@@ -1,25 +1,20 @@
 // Number|Number
 enableCache = { ->false }
-def customFieldName = 'Budget At Completion'
 
 import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.issue.Issue
 import com.atlassian.jira.issue.link.IssueLinkManager
 import com.atlassian.jira.issue.fields.CustomField
 import org.apache.commons.lang3.StringUtils
-
 import org.apache.log4j.Logger
 
 def log = Logger.getLogger('SCRIPTED')
-
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
-def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName)
 def circularityCache = []
 
-Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, CustomField customField, Logger log, Integer level) {
-  def pad = StringUtils.repeat(' ', level * 2)
-  log.info(String.format('%sbegin calculate %s for %s', pad, customField.getName(), issue.getKey()))
+Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, Logger log, Integer level) {
 
+  def pad = StringUtils.repeat(' ', level * 2)
   Double result
 
   // avoiding circularity
@@ -32,7 +27,6 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
     if (estimate > 0) {
       thisEstimate = estimate / (8 * 3600) as Double;
     }
-    log.info(String.format('%sthis %s for %s: %s', pad, customField.getName(), issue.getKey(), thisEstimate))
 
     // checking issue type
     String issueTypeName = issue.getIssueType().getName()
@@ -49,8 +43,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
           log.info(String.format('%sprocessing child of %s: %s', pad, issue.getKey(), childIssue.getKey()))
           if (issueLink.issueLinkType.name == 'Hierarchy' && childIssue.getIssueType().getName() == 'Epic') {
             // getting this estimate from child
-            Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, customField, log, level + 1)
-            log.info(String.format('%schild %s for %s: %s', pad, customField.getName(), childIssue.getKey(), childEstimate))
+            Double childEstimate = calculateEstimate(childIssue, circularityCache, issueLinkManager, log, level + 1)
             // adding each child estimate
             subsEstimate += childEstimate
           }
@@ -63,13 +56,7 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
       break
     }
   }
-  log.info(String.format('%send calculate %s for %s: %s', pad, customField.getName(), issue.getKey(), result))
   return result
 }
 
-Double result = calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
-if (result > 0) {
-  return result.round(2) + "d"
-} else {
-  return "n.d.";
-}
+Double result = calculateEstimate(issue, circularityCache, issueLinkManager, log, 0)

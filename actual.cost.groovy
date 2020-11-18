@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.log4j.Logger
 
 def log = Logger.getLogger('SCRIPTED')
-
 def customCompoundTimeSpentField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
 def circularityCache = []
 
@@ -44,8 +43,3 @@ Double calculateEstimate(Issue issue, List circularityCache, CustomField customC
 }
 
 Double result = calculateEstimate(issue, circularityCache, customCompoundTimeSpentField, log, 0)
-if (result > 0) {
-  return result.round(2) + "d"
-} else {
-  return "n.d.";
-}

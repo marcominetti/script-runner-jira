@@ -54,12 +54,7 @@ def buildTree (Issue issue, List circularityCache, IssueLinkManager issueLinkMan
         def customValue
         def customOriginalEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Original Estimate");
         def customRemainingEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Remaining Estimate");
-        def customWorkableEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Workable Estimate");
-        def customBlockedEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Blocked Estimate");
-        def customOverrunEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Overrun Estimate");
         def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
-        def customProgressRemainingField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Remaining)");
-        def customProgressTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress (Time Spent)");
 
         if(customOriginalEstimateField != null) {
             customValue = issue.getCustomFieldValue(customOriginalEstimateField);
@@ -69,30 +64,10 @@ def buildTree (Issue issue, List circularityCache, IssueLinkManager issueLinkMan
             customValue = issue.getCustomFieldValue(customRemainingEstimateField);
             tree.put("compoundRemainingEstimate", (customValue != null) ? customValue as Double : 0);
         }
-        if(customWorkableEstimateField != null) {
-            customValue = issue.getCustomFieldValue(customWorkableEstimateField);
-            tree.put("compoundWorkableEstimate", (customValue != null) ? customValue as Double : 0);
-        }
-        if(customBlockedEstimateField != null) {
-            customValue = issue.getCustomFieldValue(customBlockedEstimateField);
-            tree.put("compoundBlockedEstimate", (customValue != null) ? customValue as Double : 0);
-        }
-        if(customOverrunEstimateField != null) {
-            customValue = issue.getCustomFieldValue(customOverrunEstimateField);
-            tree.put("compoundOverrunEstimate", (customValue != null) ? customValue as Double : 0);
-        }
         if(customTimeSpentField != null) {
             customValue = issue.getCustomFieldValue(customTimeSpentField);
             tree.put("compoundTimeSpentEstimate", (customValue != null) ? customValue as Double : 0);
         }        
-        if(customProgressRemainingField != null) {
-            customValue = issue.getCustomFieldValue(customProgressRemainingField);
-            tree.put("compoundProgressRemaining", (customValue != null) ? customValue as Double : 0);
-        }
-        if(customProgressTimeSpentField != null) {
-            customValue = issue.getCustomFieldValue(customProgressTimeSpentField);
-            tree.put("compoundProgressTimeSpent", (customValue != null) ? customValue as Double : 0);
-        }
         
         // traversing direct children
         int childCount = 0
