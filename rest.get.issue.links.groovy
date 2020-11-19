@@ -13,22 +13,30 @@ import javax.ws.rs.core.Response
 
 @BaseScript CustomEndpointDelegate delegate
 
-getIssueLinks(httpMethod: "GET", groups: ["jira-users"]) { MultivaluedMap queryParams, String body ->
-	List<HashMap<String,String>> issueLinks = new ArrayList<HashMap<String,String>>();
+getIssueLinks(httpMethod: 'GET', groups: ['jira-users']) { MultivaluedMap queryParams, String body ->
+    List<HashMap<String,String>> issueLinks = new ArrayList<HashMap<String,String>>()
 
-	IssueLinkManager issueLinkManager = ComponentAccessor.getIssueLinkManager();
-    IssueManager issueManager = ComponentAccessor.getIssueManager();
+    IssueLinkManager issueLinkManager = ComponentAccessor.getIssueLinkManager()
+    IssueManager issueManager = ComponentAccessor.getIssueManager()
+    Issue issue
 
-    Issue issue = issueManager.getIssueObject(queryParams.get("issueKey").get(0).toString());
-
-    issueLinkManager.getOutwardLinks(issue.id).each {
-        issueLink ->
-        HashMap<String,String> issueLinkObject = new HashMap<String,String>();
-        issueLinkObject["issuetype"] = issueLink.getDestinationObject().getIssueType().getName();
-        issueLinkObject["linktype"] = issueLink.getIssueLinkType().getName();
-        issueLinkObject["destination"] = issueLink.getDestinationObject().getKey();
-        issueLinks.add(issueLinkObject);
+    List<String> issueList = queryParams.get("issueKey")
+    if (issueList != null) {
+        String issueKey = issueList.get(0) as String;
+        issue = issueManager.getIssueObject(issueKey)
     }
 
-    return Response.ok(new JsonBuilder(issueLinks).toString()).build();
+    if (issue != null) {
+        issueLinkManager.getOutwardLinks(issue.id).each {
+        issueLink ->
+            HashMap<String,String> issueLinkObject = new HashMap<String,String>()
+            issueLinkObject['issuetype'] = issueLink.getDestinationObject().getIssueType().getName()
+            issueLinkObject['linktype'] = issueLink.getIssueLinkType().getName()
+            issueLinkObject['destination'] = issueLink.getDestinationObject().getKey()
+            issueLinks.add(issueLinkObject)
+        }
+        return Response.ok(new JsonBuilder(issueLinks).toString()).build()
+    }else {
+        return Response.ok('{}').build()
+    }
 }
