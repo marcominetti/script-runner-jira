@@ -45,8 +45,8 @@ def returnWarnings(Issue issue, CustomField customField, StringWriter writer, Ma
           }
           warningsList.each {
             map ->tr {
-              td(style: "padding: 3px; background-color: #f5f5f5;", map.issue)
-              td(style: "padding: 3px; background-color: #f5f5f5;", map.type)
+              td(style: "padding: 3px; border: 1px solid #ccc; background-color: #f5f5f5;", map.issue)
+              td(style: "padding: 3px; border: 1px solid #ccc; background-color: #f5f5f5;", map.type)
               td(style: "padding: 3px; border: 1px solid #ccc;", map.title)
               td(style: "padding: 3px; border: 1px solid #ccc;", map.description)
             }
@@ -58,5 +58,4 @@ def returnWarnings(Issue issue, CustomField customField, StringWriter writer, Ma
   }
   return ""
 }
-
 return returnWarnings(issue, customWarning, writer, builder)
