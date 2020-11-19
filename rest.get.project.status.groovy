@@ -90,11 +90,8 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"
         def customProjectedEstimateField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Projected Estimate");
         def customTimeSpentField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Time Spent");
         def customProgressField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress");
-        //def customWarningField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Warnings");
-        def customChildrenField =  ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Children");
 
         List<Map<String,String>> anomalies = new ArrayList<Map<String,String>>()
-        List<String> children = new ArrayList<String>()
 
         issues.each { issue ->
             def issueOriginalEstimate = 0
@@ -125,29 +122,13 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"
                 customValue = issue.getCustomFieldValue(customProgressField);
                 issueProgress += (customValue != null) ? customValue as Double : 0;
             }
+
             originalEstimate += issueOriginalEstimate;
             remainingEstimate += issueRemainingEstimate;
             projectedEstimate += issueProjectedEstimate
             timeSpent += issueTimeSpent;
             progress += issueProgress * issueProjectedEstimate
 
-            /*if(customWarningField != null) {
-                def customAnomalies = issue.getCustomFieldValue(customWarningField);
-                if (customAnomalies != null) {
-                    def jsonParser = new JsonSlurper()
-                    def childAnomalies = jsonParser.parseText(customAnomalies.toString())
-                    anomalies.addAll((List<Map<String,String>>) childAnomalies)
-                }
-            }*/
-
-            if(customChildrenField != null) {
-                def customChildren = issue.getCustomFieldValue(customChildrenField);
-                if (customChildren != null) {
-                    def jsonParser = new JsonSlurper()
-                    def childChildren = jsonParser.parseText(customChildren.toString())
-                    children.addAll((List<String>) childChildren)
-                }
-            }
         }
 
         if (projectedEstimate > 0) {
@@ -162,8 +143,6 @@ getProjectStatus(httpMethod: "GET", groups: ["jira-users", "jira-software-users"
         result.put("projectedEstimate", projectedEstimate as Double);
         result.put("timeSpent", timeSpent as Double);
         result.put("progress", progress as Double);
-        //result.put("warnings", anomalies);
-        result.put("children", children)
         return Response.ok(new JsonBuilder(result).toString()).build();
     } else {
         return Response.ok("{}").build();
