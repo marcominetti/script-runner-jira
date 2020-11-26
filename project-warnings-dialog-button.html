@@ -1,0 +1,188 @@
+<script type="text/javascript">
+    (function () {
+        function getProjectKey() {
+            let url = $("a[href*='/jira/projects/']").get(0).toString().split("jira/projects/");
+            let key = url[1].split("/");
+            return key[0];
+        }
+
+        function getWarningsDialog(warnings) {
+            let warningsDialog = new AJS.Dialog({
+                width: 850,
+                height: 500,
+                id: "project-status-warnings-dialog-template",
+                closeOnOutsideClick: false
+            });
+
+            warningsDialog.addHeader("WARNINGS");
+            warningsDialog.addPanel("SinglePanel", "<div id='warnings-table'></div>", "singlePanel");
+            warningsTable(warnings);
+            warningsDialog.addButton("Close",
+                warningsDialog => {
+                    warningsDialog.remove();
+                }, "#");
+            return warningsDialog;
+        }
+
+        function warningsTable(incomingWarnings) {
+            let warnings = JSON.stringify(incomingWarnings.warnings);
+            let warningsList = JSON.parse(warnings);
+
+            let table = document.createElement("table");
+            let tr = table.insertRow(-1);
+            let headerList = ["Issue Key", "Issue Type", "Title", "Description"];
+            headerList.forEach(header => {
+                let th = document.createElement("th");
+                th.innerHTML = header;
+                tr.appendChild(th);
+            })
+
+            for (let i = 0; i < warningsList.length; i++) {
+                tr = table.insertRow(-1);
+                let war = warningsList[i];
+                let issue = tr.insertCell(-1);
+                issue.innerHTML = war.issue;
+                let type = tr.insertCell(-1);
+                type.innerHTML = war.type;
+                let title = tr.insertCell(-1);
+                title.innerHTML = war.title;
+                let description = tr.insertCell(-1);
+                description.innerHTML = war.description;
+            }
+
+            let showWarningsTable = document.getElementById('warnings-table');
+            showWarningsTable.innerHTML = "";
+            showWarningsTable.appendChild(table);
+            warningsTableStyle();
+            linkToIssue();
+        }
+
+        function linkToIssue() {
+            let tableTr = document.getElementById("warnings-table").getElementsByTagName("tr");
+            for (var i = 0; i < tableTr.length; i++) {
+                if (tableTr[i].rowIndex > 0) {
+                    let childTd = tableTr[i].getElementsByTagName("td");
+                    for (var j = 0; j < childTd.length; j++) {
+                        if (childTd[j].cellIndex == 0) {
+                            let name = childTd[j].innerText;
+                            let url = `https://tools.linksmt.it/jira/browse/${name}`;
+                            let linkToUrl = `<a href="${url}" target="_blank" style="color:inherit"; text-decoration: none;">${name}</a> `;
+                            childTd[j].innerHTML = linkToUrl;
+                        }
+                    }
+                }
+            }
+        }
+
+        function warningsTableStyle() {
+            let tableElement = document.getElementById("warnings-table").getElementsByTagName("table");
+            for (var i = 0; i < tableElement.length; i++) {
+                tableElement[i].style.width = "100%";
+                tableElement[i].style.borderCollapse = "collapse";
+                tableElement[i].style.border = "1px solid #ccc";
+            }
+
+            let tableTr = document.getElementById("warnings-table").getElementsByTagName("tr");
+            for (var i = 0; i < tableTr.length; i++) {
+                tableTr[i].style.paddingLeft = "5px";
+                tableTr[i].style.border = "1px solid #ccc";
+                if (tableTr[i].rowIndex > 0) {
+                    let childTd = tableTr[i].getElementsByTagName("td");
+                    for (var j = 0; j < childTd.length; j++) {
+                        if (childTd[j].cellIndex == 0 || childTd[j].cellIndex == 1) {
+                            childTd[j].style.backgroundColor = "#f5f5f5";
+                        }
+                    }
+                }
+            }
+
+            let tableTd = document.getElementById("warnings-table").getElementsByTagName("td");
+            for (var i = 0; i < tableTd.length; i++) {
+                tableTd[i].style.paddingLeft = "5px";
+                tableTd[i].style.border = "1px solid #ccc";
+                if (tableTd[i].cellIndex == 0 || tableTd[i].cellIndex == 1) {
+                    tableTd[i].style.minWidth = "5rem";
+                }
+            }
+
+            let tableTh = document.getElementById("warnings-table").getElementsByTagName("th");
+            for (var i = 0; i < tableTh.length; i++) {
+                tableTh[i].style.backgroundColor = "#ddd";
+                tableTh[i].style.textAlign = "left";
+                tableTh[i].style.paddingLeft = "5px";
+            }
+        }
+
+        async function getWarnings() {
+            let projectKey = getProjectKey();
+            let warnings = await (await fetch(`https://tools-pre.linksmt.it/jira/rest/scriptrunner/latest/custom/getProjectWarnings?projectKey=${projectKey}`)).json();
+            if (Object.keys(warnings.warnings).length > 0) {
+                $(".aui-sidebar-jira-status-button").on("click", () => {
+                    getWarningsDialog(warnings).show();
+                });
+                $(".aui-iconfont-warning").css("color", "tomato");
+                $(".aui-sidebar-jira-status-button").attr("warnings", true);
+            }
+        }
+
+        $(document).ready(() => {
+            if ($("div.aui-sidebar.projects-sidebar").size() > 0) {
+                $(".aui-sidebar-footer").prepend($("#project-status-icon-template").html());
+                getWarnings();
+            }
+        });
+    })();
+</script>
+
+<script id="project-status-icon-template" type="text/html">
+      <a href="javascript:void(0)" class="aui-button aui-button-subtle aui-sidebar-jira-status-button" data-tooltip="Jira Status" original-title="">
+        <span class="aui-icon aui-icon-small aui-iconfont-warning"></span>
+        <span class="aui-button-label">Jira Status</span>
+      </a>
+    </script>
+
+<style>
+    #timetrackingmodule {
+        display: none !important;
+    }
+
+    #announcement-banner {
+        display: none !important;
+    }
+
+    .aui-sidebar.projects-sidebar[aria-expanded=true] .aui-sidebar-toggle {
+        bottom: 0;
+    }
+
+    .aui-sidebar.projects-sidebar[aria-expanded=true] .aui-sidebar-toggle>.aui-icon {
+        margin-top: 100%;
+    }
+
+    .aui-sidebar[aria-expanded="false"] .aui-sidebar-footer>.aui-sidebar-jira-status-button,
+    .aui-sidebar-submenu[aria-expanded="false"] .aui-sidebar-footer>.aui-sidebar-jira-status-button {
+        display: block;
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 0;
+        max-width: none;
+        padding: 10px 20px;
+    }
+
+    .aui-sidebar .aui-sidebar-footer>.aui-sidebar-jira-status-button,
+    .aui-sidebar-submenu .aui-sidebar-footer>.aui-sidebar-jira-status-button {
+        margin-top: -5px;
+        margin-bottom: -5px;
+        margin-left: -9px;
+        text-shadow: none;
+    }
+
+    .aui-sidebar .aui-sidebar-footer>.aui-sidebar-jira-status-button,
+    .aui-sidebar-submenu .aui-sidebar-footer>.aui-sidebar-jira-status-button,
+    .aui-sidebar .aui-sidebar-footer>.aui-sidebar-toggle,
+    .aui-sidebar-submenu .aui-sidebar-footer>.aui-sidebar-toggle {
+        border: 0;
+        border-radius: 0;
+        height: auto;
+        padding: 9px 15px;
+    }
+</style>
