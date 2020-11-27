@@ -7,12 +7,20 @@ import com.atlassian.jira.issue.Issue
 import com.atlassian.jira.issue.fields.CustomField;
 import groovy.xml.MarkupBuilder
 import org.apache.log4j.Logger
+import org.apache.commons.lang3.StringUtils
 
 def log = Logger.getLogger("SCRIPTED")
 def customWarning = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Warnings");
 
 StringWriter writer = new StringWriter()
 MarkupBuilder builder = new MarkupBuilder(writer)
+
+String getHyperlink(def issue){
+  String name = issue as String;
+  // remove the "-pre" in production
+  String url = String.format('https://tools-pre.linksmt.it/jira/browse/%s', name)
+  return url
+}
 
 def getCustomFieldValue(Issue issue, CustomField customField) {
   def customValue
@@ -45,7 +53,8 @@ def returnWarnings(Issue issue, CustomField customField, StringWriter writer, Ma
           }
           warningsList.each {
             map ->tr {
-              td(style: "padding: 3px; border: 1px solid #ccc; background-color: #f5f5f5;", map.issue)
+              td(style: "padding: 3px; border: 1px solid #ccc; background-color: #f5f5f5;", 
+                  {a(style: "color:#3b73af;", target:"_blank", href:getHyperlink(map.issue), map.issue)})
               td(style: "padding: 3px; border: 1px solid #ccc; background-color: #f5f5f5;", map.type)
               td(style: "padding: 3px; border: 1px solid #ccc;", map.title)
               td(style: "padding: 3px; border: 1px solid #ccc;", map.description)
