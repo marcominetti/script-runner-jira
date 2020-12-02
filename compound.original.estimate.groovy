@@ -61,11 +61,11 @@ if (issue.getIssueType().getName() == "Epic") {
     Issue parentIssue = issueLink.getSourceObject()
     if (issueLink.issueLinkType.name == "Hierarchy" && parentIssue.getIssueType().getName() == "Milestone") {
       if (milestonePortfolio != null && parentIssue.getId() != milestonePortfolio.getId()) {
-        log.info(String.format("remove mismatching jira milestone for %s: %s should be %s", issue.getKey(), parentIssue.getKey(), milestonePortfolio.getKey()))
-        issueLinkManager.removeIssueLink(issueLink, loggedInUser)
+        //log.info(String.format("remove mismatching jira milestone for %s: %s should be %s", issue.getKey(), parentIssue.getKey(), milestonePortfolio.getKey()))
+        //issueLinkManager.removeIssueLink(issueLink, loggedInUser)
       } else if (milestonePortfolio == null) {
-        log.info(String.format("remove leftover jira milestone for %s: %s", issue.getKey(), parentIssue.getKey()))
-        issueLinkManager.removeIssueLink(issueLink, loggedInUser)
+        //log.info(String.format("remove leftover jira milestone for %s: %s", issue.getKey(), parentIssue.getKey()))
+        //issueLinkManager.removeIssueLink(issueLink, loggedInUser)
       } else {
         milestoneJira = parentIssue
       }
