@@ -61,7 +61,7 @@ if (issue.getIssueType().getName() == "Epic") {
     issueLink ->
     Issue parentIssue = issueLink.getSourceObject()
     // avoiding circularity
-    if (circularityCache.contains(issue) == false) {
+    if (circularityCache.contains(parentIssue) == false) {
       circularityCache.add(parentIssue)
       if (issueLink.issueLinkType.name == "Hierarchy" && parentIssue.getIssueType().getName() == "Milestone") {
         if (milestonePortfolio != null && parentIssue.getId() != milestonePortfolio.getId()) {
