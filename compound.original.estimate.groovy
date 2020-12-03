@@ -56,21 +56,28 @@ if (issue.getIssueType().getName() == "Epic") {
 
   // get eventual issue milestone linked inward hierarchy
   Issue milestoneJira
+  circularityCache.add(issue)
   issueLinkManager.getInwardLinks(issue.id).each {
     issueLink ->
     Issue parentIssue = issueLink.getSourceObject()
-    if (issueLink.issueLinkType.name == "Hierarchy" && parentIssue.getIssueType().getName() == "Milestone") {
-      if (milestonePortfolio != null && parentIssue.getId() != milestonePortfolio.getId()) {
-        //log.info(String.format("remove mismatching jira milestone for %s: %s should be %s", issue.getKey(), parentIssue.getKey(), milestonePortfolio.getKey()))
-        //issueLinkManager.removeIssueLink(issueLink, loggedInUser)
-      } else if (milestonePortfolio == null) {
-        //log.info(String.format("remove leftover jira milestone for %s: %s", issue.getKey(), parentIssue.getKey()))
-        //issueLinkManager.removeIssueLink(issueLink, loggedInUser)
-      } else {
-        milestoneJira = parentIssue
+    // avoiding circularity
+    if (circularityCache.contains(issue) == false) {
+      circularityCache.add(parentIssue)
+      if (issueLink.issueLinkType.name == "Hierarchy" && parentIssue.getIssueType().getName() == "Milestone") {
+        if (milestonePortfolio != null && parentIssue.getId() != milestonePortfolio.getId()) {
+          //log.info(String.format("remove mismatching jira milestone for %s: %s should be %s", issue.getKey(), parentIssue.getKey(), milestonePortfolio.getKey()))
+          //issueLinkManager.removeIssueLink(issueLink, loggedInUser)
+        } else if (milestonePortfolio == null) {
+          //log.info(String.format("remove leftover jira milestone for %s: %s", issue.getKey(), parentIssue.getKey()))
+          //issueLinkManager.removeIssueLink(issueLink, loggedInUser)
+        } else {
+          milestoneJira = parentIssue
+        }
       }
     }
+  
   }
+  
   if (milestoneJira != null) {
   	log.info(String.format("jira milestone for %s: %s", issue.getKey(), milestoneJira.getKey()))
   }
@@ -86,6 +93,7 @@ if (issue.getIssueType().getName() == "Epic") {
     issueLinkManager.createIssueLink(milestonePortfolio.id, issue.id, issueLinkType.id, 1L, loggedInUser)
   }
 }
+circularityCache = []
 
 Double getCustomFieldValue(Issue issue, CustomField customField) {
   def customValue
