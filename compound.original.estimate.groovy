@@ -2,6 +2,7 @@
 enableCache = { ->false }
 def customFieldName = "Compound Original Estimate"
 def customScrumFieldName = "Compound Original Estimate for Scrum"
+def customUiFieldName = "Compound Original Estimate for UI"
 Long customPortfolioFieldId = 10200
 
 import com.atlassian.jira.ComponentManager
@@ -27,6 +28,7 @@ def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def issueLinkTypeManager = ComponentAccessor.getComponent(IssueLinkTypeManager)
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 def customScrumField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customScrumFieldName);
+def customUiField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customUiFieldName);
 def circularityCache = []
 
 // cleaning unsupported hierarchy link
@@ -187,8 +189,11 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
 }
 
 Double result = calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
-// memoizing data in number field (for UI)
+// memoizing data in number field (for Scrum)
 log.info(String.format("update %s for %s: %s", customScrumField.getName(), issue.getKey(), result))
 customScrumField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customScrumField), result), new DefaultIssueChangeHolder());
+// memoizing data in number field (for Portfolio)
+log.info(String.format("update %s for %s: %s", customUiFieldName.getName(), issue.getKey(), result))
+customUiFieldName.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiFieldName), result.round(2) + "d"), new DefaultIssueChangeHolder());
 
 return result
