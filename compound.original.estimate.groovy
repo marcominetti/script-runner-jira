@@ -193,7 +193,7 @@ Double result = calculateEstimate(issue, circularityCache, issueLinkManager, cus
 log.info(String.format("update %s for %s: %s", customScrumField.getName(), issue.getKey(), result))
 customScrumField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customScrumField), result), new DefaultIssueChangeHolder());
 // memoizing data in number field (for Portfolio)
-log.info(String.format("update %s for %s: %s", customUiFieldName.getName(), issue.getKey(), result))
-customUiFieldName.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiFieldName), result.round(2) + "d"), new DefaultIssueChangeHolder());
+log.info(String.format("update %s for %s: %s", customUiField.getName(), issue.getKey(), result))
+customUiFieldName.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result.round(2) + "d"), new DefaultIssueChangeHolder());
 
 return result
