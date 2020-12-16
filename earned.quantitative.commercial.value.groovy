@@ -1,17 +1,22 @@
 // Number|Number
 enableCache = { ->false }
 
+def customUiFieldName = "Earned Quantitative Commercial Value (d)"
+
 import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.issue.Issue
 import com.atlassian.jira.issue.link.IssueLinkManager
 import com.atlassian.jira.issue.fields.CustomField
 import org.apache.commons.lang3.StringUtils
+import com.atlassian.jira.issue.ModifiedValue;
+import com.atlassian.jira.issue.util.DefaultIssueChangeHolder;
 import org.apache.log4j.Logger
 
 def log = Logger.getLogger('SCRIPTED')
 
 def customCompoundCommercialEstimateField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Commercial Estimate");
 def customCompoundProgressField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName("Compound Progress");
+def customUiField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customUiFieldName);
 def circularityCache = []
 
 Double getCustomFieldValue(Issue issue, CustomField customField) {
@@ -48,3 +53,9 @@ Double calculateEstimate(Issue issue, List circularityCache, CustomField customC
 }
 
 Double result = calculateEstimate(issue, circularityCache, customCompoundCommercialEstimateField, customCompoundProgressField, log, 0)
+
+// memoizing data in number field (for Portfolio)
+log.info(String.format("update %s for %s: %s", customUiField.getName(), issue.getKey(), result))
+customUiField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result), new DefaultIssueChangeHolder());
+
+return result

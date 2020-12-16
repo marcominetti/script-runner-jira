@@ -2,7 +2,7 @@
 enableCache = { ->false }
 def customFieldName = "Compound Original Estimate"
 def customScrumFieldName = "Compound Original Estimate for Scrum"
-def customUiFieldName = "Compound Original Estimate for UI"
+def customUiFieldName = "∑ Original Estimate (d)"
 Long customPortfolioFieldId = 10200
 
 import com.atlassian.jira.ComponentManager
@@ -194,6 +194,6 @@ log.info(String.format("update %s for %s: %s", customScrumField.getName(), issue
 customScrumField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customScrumField), result), new DefaultIssueChangeHolder());
 // memoizing data in number field (for Portfolio)
 log.info(String.format("update %s for %s: %s", customUiField.getName(), issue.getKey(), result))
-customUiField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result.round(2) + "d"), new DefaultIssueChangeHolder());
+customUiField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result.round(2)), new DefaultIssueChangeHolder());
 
 return result

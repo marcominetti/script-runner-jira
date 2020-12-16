@@ -1,15 +1,24 @@
 // Number|Number
 enableCache = { ->false }
 
+def customUiFieldName = "Budget At Completion (d)"
+
+import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.issue.Issue
+import com.atlassian.jira.issue.link.IssueLink
 import com.atlassian.jira.issue.link.IssueLinkManager
+import com.atlassian.jira.issue.link.IssueLinkTypeManager
+import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.fields.CustomField
 import org.apache.commons.lang3.StringUtils
+import com.atlassian.jira.issue.ModifiedValue;
+import com.atlassian.jira.issue.util.DefaultIssueChangeHolder;
 import org.apache.log4j.Logger
 
 def log = Logger.getLogger('SCRIPTED')
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
+def customUiField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customUiFieldName);
 def circularityCache = []
 
 Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager issueLinkManager, Logger log, Integer level) {
@@ -60,3 +69,9 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
 }
 
 Double result = calculateEstimate(issue, circularityCache, issueLinkManager, log, 0)
+
+// memoizing data in number field (for Portfolio)
+log.info(String.format("update %s for %s: %s", customUiField.getName(), issue.getKey(), result))
+customUiField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result.round(2)), new DefaultIssueChangeHolder());
+
+return result

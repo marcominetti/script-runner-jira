@@ -1,6 +1,7 @@
 // Number|Number
 enableCache = { ->false }
 def customFieldName = "Compound Remaining Estimate"
+def customUiFieldName = "∑ Remaining Estimate (d)"
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
@@ -18,6 +19,7 @@ def log = Logger.getLogger("SCRIPTED")
 
 def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
+def customUiField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customUiFieldName);
 def circularityCache = []
 
 Double getCustomFieldValue(Issue issue, CustomField customField) {
@@ -111,4 +113,10 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
   return result
 }
 
-return calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
+Double result = calculateEstimate(issue, circularityCache, issueLinkManager, customField, log, 0)
+
+// memoizing data in number field (for Portfolio)
+log.info(String.format("update %s for %s: %s", customUiField.getName(), issue.getKey(), result))
+customUiField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result.round(2)), new DefaultIssueChangeHolder());
+
+return result

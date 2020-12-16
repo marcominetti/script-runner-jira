@@ -58,7 +58,7 @@ builder.div (class:"", style: "display: inline-flex; font-weight: 400; max-heigh
             span ("C ")
         }
         div (class: "", title: "Commercial Estimate", style: "text-align: center; width: 50px; padding: 0px 8px; color: #ffffff; background-color: #999; border-radius: 4px; margin-right: 10px;") {
-            span (class: "", String.format((thisCompoundCommercialEstimate*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundOriginalEstimate))
+            span (class: "", String.format((thisCompoundCommercialEstimate*10 < 1) ? "%.2fd" : "%.1fd", thisCompoundCommercialEstimate))
         }
     }else{
         div (class: "", style: "text-align: center; width: 20px; color: #999; background-color: #fff; margin-right: 0px; font-size: 11px; text-overflow: ellipsis; overflow: hidden;") {

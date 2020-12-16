@@ -3,6 +3,7 @@ enableCache = { ->false }
 def customFieldName = "Compound Projected Estimate"
 def customRemainingFieldName = "Compound Remaining Estimate"
 def customSpentFieldName = "Compound Time Spent"
+def customUiFieldName = "∑ Projected Estimate (d)"
 
 import com.atlassian.jira.ComponentManager
 import com.atlassian.jira.component.ComponentAccessor
@@ -22,6 +23,7 @@ def issueLinkManager = ComponentAccessor.getIssueLinkManager()
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 def customRemainingField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customRemainingFieldName);
 def customSpentField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customSpentFieldName);
+def customUiField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customUiFieldName);
 def circularityCache = []
 
 Double getCustomFieldValue(Issue issue, CustomField customField) {
@@ -73,4 +75,10 @@ Double calculateEstimate(Issue issue, List circularityCache, IssueLinkManager is
   return result
 }
 
-return calculateEstimate(issue, circularityCache, issueLinkManager, customField, customRemainingField, customSpentField, log, 0)
+Double result = calculateEstimate(issue, circularityCache, issueLinkManager, customField, customRemainingField, customSpentField, log, 0)
+
+// memoizing data in number field (for Portfolio)
+log.info(String.format("update %s for %s: %s", customUiField.getName(), issue.getKey(), result))
+customUiField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result.round(2)), new DefaultIssueChangeHolder());
+
+return result
