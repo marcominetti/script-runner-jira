@@ -5,22 +5,28 @@ def customScrumFieldName = "Compound Original Estimate for Scrum"
 def customUiFieldName = "∑ Original Estimate (d)"
 Long customPortfolioFieldId = 10200
 
-import com.atlassian.jira.ComponentManager
-import com.atlassian.jira.component.ComponentAccessor
-import com.atlassian.jira.issue.Issue
-import com.atlassian.jira.issue.link.IssueLink
-import com.atlassian.jira.issue.link.IssueLinkManager
-import com.atlassian.jira.issue.link.IssueLinkTypeManager
+import com.atlassian.jira.ComponentManager;
+import com.atlassian.jira.component.ComponentAccessor;
+import com.atlassian.jira.issue.Issue;
+import com.atlassian.jira.issue.link.IssueLink;
+import com.atlassian.jira.issue.link.IssueLinkManager;
+import com.atlassian.jira.issue.link.IssueLinkTypeManager;
 import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.fields.CustomField;
 import com.atlassian.jira.issue.ModifiedValue;
 import com.atlassian.jira.issue.util.DefaultIssueChangeHolder;
 import org.apache.commons.lang3.StringUtils;
+import com.atlassian.jira.issue.index.IssueIndexingService;
+import com.atlassian.jira.util.ImportUtils;
+import org.apache.log4j.Category;
 import groovyx.net.http.RESTClient;
 
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 def log = Logger.getLogger("SCRIPTED")
+
+boolean indexing = ImportUtils.isIndexIssues();
+ImportUtils.setIndexIssues(true);
 
 def loggedInUser = ComponentAccessor.jiraAuthenticationContext.loggedInUser
 def issueManager = ComponentAccessor.getIssueManager()
@@ -29,6 +35,7 @@ def issueLinkTypeManager = ComponentAccessor.getComponent(IssueLinkTypeManager)
 def customField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customFieldName);
 def customScrumField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customScrumFieldName);
 def customUiField = ComponentAccessor.getCustomFieldManager().getCustomFieldObjectByName(customUiFieldName);
+def issueIndexingService = ComponentAccessor.getComponent(IssueIndexingService)
 def circularityCache = []
 
 // cleaning unsupported hierarchy link
@@ -197,3 +204,7 @@ log.info(String.format("update %s for %s: %s", customUiField.getName(), issue.ge
 customUiField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result.round(2)), new DefaultIssueChangeHolder());
 
 return result
+
+log.info(String.format("reindex issue with key: %s and id: %s", issue.getKey(), issue.id))
+issueIndexingService.reIndex(issueManager.getIssueObject(issue.id));
+ImportUtils.setIndexIssues(indexing);
