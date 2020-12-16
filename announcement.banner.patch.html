@@ -145,6 +145,14 @@
             }, 500)
         }
 
+        async function disableIssueDetailsInputs(){
+            let intervalId = setInterval(() => {
+                if ($("div.tabs-pane.active-pane").find("div.field-group").find("input.text.long-field[id^=customfield_][readonly='readonly']").size() === 0) {
+                    $("div.tabs-pane.active-pane").find("div.field-group").find("input.text.long-field[id^=customfield_]:not([maxlength])").attr('readonly', true);
+                }
+            }, 500)
+        }
+
         // disable editing of custom field in portfolio table
         async function disablePortfolioTable() {
             let tableContent;
@@ -170,6 +178,7 @@
                 getWarnings();
             }
             disableEditing();
+            disableIssueDetailsInputs();
             disablePortfolioTable();
         });
     })();
