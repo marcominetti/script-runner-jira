@@ -1,7 +1,7 @@
 // Number|Number
 enableCache = { ->false }
 
-def customUiFieldName = "Actual Cost (d)"
+def customUiFieldName = '$ AC (d)'
 
 import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.issue.Issue
@@ -51,6 +51,6 @@ Double result = calculateEstimate(issue, circularityCache, customCompoundTimeSpe
 
 // memoizing data in number field (for Portfolio)
 log.info(String.format("update %s for %s: %s", customUiField.getName(), issue.getKey(), result))
-customUiField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result.round(2)), new DefaultIssueChangeHolder());
+customUiField.updateValue(null, issue, new ModifiedValue(issue.getCustomFieldValue(customUiField), result), new DefaultIssueChangeHolder());
 
 return result

@@ -1,7 +1,7 @@
 // Number|Number
 enableCache = { ->false }
 
-def customUiFieldName = "Earned Quantitative Projected Value (d)"
+def customUiFieldName = '$ EV Projected (d)'
 
 import com.atlassian.jira.component.ComponentAccessor
 import com.atlassian.jira.issue.Issue
